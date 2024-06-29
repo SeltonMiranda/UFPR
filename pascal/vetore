@@ -1,0 +1,46 @@
+program prova2;
+const MAX = 100;
+type vetor = array[1..MAX] of integer;
+var v: vetor; 
+    n: integer;
+
+(* Procedure que lê o vetor *)
+procedure ler_vetor(var v: vetor; tam: integer);
+var i: integer;
+begin
+  for i := 1 to tam do
+    read(v[i]);
+end;
+
+(* Function que soma elementos do vetor *)
+function soma(var v: vetor; inicio, fim: integer): integer;
+var i, s: integer;
+begin
+   s:= 0;
+   for i:= inicio to fim do
+     s:= s + v[i];
+   soma := s;
+end;
+
+(* Function que verifica se existe um elemento que divide o vetor.
+   Se existe retorna o valor do elemento, caso contrário retorna -1 *)
+function verifica_elemento(var v: vetor; tam: integer) : integer;
+var i: integer;
+begin
+   verifica_elemento := -1; (* inicia o valor com -1 *)
+   i := 2;
+   while (i < tam) and (soma(v, 1, i-1) <> soma (v, i+1, tam)) do
+     i:= i + 1;
+   if i <> tam then
+     verifica_elemento := v[i];
+end;
+
+begin
+  read(n);
+  while n > 0 do
+  begin
+    ler_vetor(v, n);
+    writeln(verifica_elemento(v, n));
+    read(n);
+  end;
+end.
