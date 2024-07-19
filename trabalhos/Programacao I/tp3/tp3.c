@@ -109,8 +109,13 @@ int main ()
         
         scanf("%d", &n);
         v = alocaVetor(n);
+        if (v == NULL) {
+                fprintf(stderr, "ERRO: Nao conseguiu alocar memoria\n");
+                return 1;
+        }
+
         if (!lerVetor(v, n)) {
-                fprintf(stderr, "ERRO DE ALOCACAO DE MEMORIA");
+                fprintf(stderr, "ERRO: Nao conseguiu alocar memoria\n");
                 return 1;
         }
         imprimeVetor(v, n);
