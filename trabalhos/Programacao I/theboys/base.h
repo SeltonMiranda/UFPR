@@ -8,9 +8,9 @@ struct Base {
         int id;
         int pos_x;
         int pos_y;
-        int max_herois;
-        struct fila *fila_espera_herois;
-        struct conjunto *herois_presentes;
+        int nHerois;
+        struct fila *fHerois;
+        struct conjunto *hPresentes;
 };
 
 #endif

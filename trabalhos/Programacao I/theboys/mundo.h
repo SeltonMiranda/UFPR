@@ -22,54 +22,49 @@
 #define MISSAO 7
 #define FIM 8
 
-/* Constantes Globais */
+/* Constantes */
 #define T_FIM_DO_MUNDO 525600
 #define TAMANHO_MUNDO 20000
-#define NUM_HABILIDADES 10
-#define NUM_HEROIS (NUM_HABILIDADES * 5)
-#define NUM_BASES (NUM_HEROIS / 6)
-#define NUM_MISSOES (T_FIM_DO_MUNDO / 100)
+#define N_HABILIDADES 10
+#define N_HEROIS (N_HABILIDADES * 5)
+#define N_BASES (N_HEROIS / 6)
+#define N_MISSOES (T_FIM_DO_MUNDO / 100)
 
 #define MEM_ALLOC_ERR(s) do { \
-        fprintf(stderr, "ERRO: Memoria para %s nao alocada\n", #s); \
+        fprintf(stderr, "ERRO: Memoria nao alocada para %s\n", #s); \
         exit(1); \
 } while (0);
 
 struct Mundo {
-        int tempo_inicial;
-        int tempo_fim;
-
-        int max_herois;
-        struct Heroi *herois;
-
-        int max_bases;
+        int timer;
+        int nHerois;
+        int nBases;
+        int nMissoes;
+        int nHab;
         struct Base *bases;
-
-        int max_missoes;
         struct Missao *missoes;
-
-        int max_habilidades;
-        int TamanhoMundo;
-
+        struct Heroi *herois;
         struct lef_t *lista_eventos;
 };
 
-struct Mundo *inicializa_mundo();
-struct Heroi *inicializa_herois(int n_herois, struct conjunto *c_habilidades);
-struct Base *inicializa_bases(int n_bases, int tamanho_mundo);
-struct Missao *inicializa_missoes(int n_missoes, int tamanho_mundo,
-                                  struct conjunto *c_habilidades);
-void destroi_mundo(struct Mundo **m);
-void init_eventos(struct Mundo *m);
-void processa_evento_chega(int h, int b, struct Mundo *m);
-void processa_evento_espera(int h, int b, struct Mundo *m);
-void processa_evento_avisa(int b, struct Mundo *m);
-void processa_evento_entra(int h, int b, struct Mundo *m);
-void processa_evento_sai(int h, int b, struct Mundo *m);
-void processa_evento_viaja(int h, int d, struct Mundo *m);
-void processa_evento_desiste(int h, int b, struct Mundo *m);
-void processa_evento_missao(int mi, struct Mundo *m);
-void processa_evento_fim(struct Mundo **m);
+struct Mundo *initMundo();
+struct Heroi *initHerois(struct conjunto *c_habilidades);
+struct Base *initBases();
+struct Missao *initMissoes(struct conjunto *c_habilidades);
+void initEventos(struct Mundo *m);
+void evento_chega(int h, int b, struct Mundo *m);
+void evento_espera(int h, int b, struct Mundo *m);
+void evento_avisa(int b, struct Mundo *m);
+void evento_entra(int h, int b, struct Mundo *m);
+void evento_sai(int h, int b, struct Mundo *m);
+void evento_viaja(int h, int d, struct Mundo *m);
+void evento_desiste(int h, int b, struct Mundo *m);
+void evento_missao(int mi, struct Mundo *m);
+void evento_fim(struct Mundo **m);
 void termina_simulacao(struct Mundo **m);
+void destroi_mundo(struct Mundo **m);
+int getTimer(struct Mundo *m);
+void setTimer(struct Mundo *m, int tempo);
+struct lef_t *getListaDeEventos(struct Mundo *m);
 
 #endif

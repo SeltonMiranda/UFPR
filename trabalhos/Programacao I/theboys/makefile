@@ -27,7 +27,7 @@ mundo.o: mundo.c mundo.h
 # arquivo TGZ para entregar
 entrega: clean
 	mkdir $(ENTREGA)
-	cp *.c *.h makefile $(ENTREGA)
+	cp *.c *.h *.o makefile $(ENTREGA)
 	chmod 600 $(ENTREGA)/*
 	tar czvf $(ENTREGA).tgz $(ENTREGA)
 	rm -rf $(ENTREGA)

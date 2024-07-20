@@ -1,62 +1,59 @@
-#include <stdlib.h>
-
+/* Personal Includes */
 #include "lef.h"
 #include "mundo.h"
 
+/* System Includes */
+#include <stdlib.h>
 
 int main (){
         srand (0);
         struct Mundo *mundo;
-        struct evento_t *atual;
+        struct evento_t *ev;
 
-        mundo = inicializa_mundo();
-        init_eventos(mundo);
-        
-        while (mundo->tempo_inicial != mundo->tempo_fim)
+        mundo = initMundo();
+        initEventos(mundo);
+        while (getTimer(mundo) != T_FIM_DO_MUNDO)
         {
-                atual = retira_lef(mundo->lista_eventos);
-                mundo->tempo_inicial = atual->tempo;        
-
-                switch (atual->tipo) {
+                ev = retira_lef(getListaDeEventos(mundo));
+                setTimer(mundo, ev->tempo);
+                switch (ev->tipo) {
                         case CHEGA:
-                        processa_evento_chega(atual->dado1, atual->dado2, mundo);
+                        evento_chega(ev->dado1, ev->dado2, mundo);
                         break;
 
                         case ESPERA:
-                        processa_evento_espera(atual->dado1, atual->dado2, mundo);
+                        evento_espera(ev->dado1, ev->dado2, mundo);
                         break;
 
                         case AVISA:
-                        processa_evento_avisa(atual->dado1, mundo);
+                        evento_avisa(ev->dado1, mundo);
                         break;
                                 
                         case ENTRA:
-                        processa_evento_entra(atual->dado1, atual->dado2, mundo); 
+                        evento_entra(ev->dado1, ev->dado2, mundo); 
                         break;
 
                         case SAI:
-                        processa_evento_sai(atual->dado1, atual->dado2, mundo); 
+                        evento_sai(ev->dado1, ev->dado2, mundo); 
                         break;
 
                         case VIAJA:
-                        processa_evento_viaja(atual->dado1, atual->dado2, mundo);
+                        evento_viaja(ev->dado1, ev->dado2, mundo);
                         break;
 
                         case DESISTE:
-                        processa_evento_desiste(atual->dado1, atual->dado2, mundo);
+                        evento_desiste(ev->dado1, ev->dado2, mundo);
                         break;
 
                         case MISSAO:
-                        processa_evento_missao(atual->dado1, mundo);
+                        evento_missao(ev->dado1, mundo);
                         break;
 
                         case FIM:
-                        processa_evento_fim(&mundo);
+                        evento_fim(&mundo);
                         break;
-
                 }
-                atual = destroi_evento(atual);
-
+                ev = destroi_evento(ev);
         }
         termina_simulacao(&mundo);
         return 0;
