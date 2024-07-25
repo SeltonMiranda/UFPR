@@ -5,15 +5,15 @@
 /* System Includes */
 #include <stdlib.h>
 
-int main (){
+int main()
+{
         srand (0);
         struct Mundo *mundo;
         struct evento_t *ev;
 
         mundo = initMundo();
         initEventos(mundo);
-        while (getTimer(mundo) != T_FIM_DO_MUNDO)
-        {
+        while (getTimer(mundo) != T_FIM_DO_MUNDO) {
                 ev = retira_lef(getListaDeEventos(mundo));
                 setTimer(mundo, ev->tempo);
                 switch (ev->tipo) {

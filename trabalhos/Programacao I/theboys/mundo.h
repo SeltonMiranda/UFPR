@@ -41,16 +41,16 @@ struct Mundo {
         int nBases;
         int nMissoes;
         int nHab;
-        struct Base *bases;
-        struct Missao *missoes;
-        struct Heroi *herois;
+        struct Base bases[N_BASES];
+        struct Missao missoes[N_MISSOES];
+        struct Heroi herois[N_HEROIS];
         struct lef_t *lista_eventos;
 };
 
 struct Mundo *initMundo();
-struct Heroi *initHerois(struct conjunto *c_habilidades);
-struct Base *initBases();
-struct Missao *initMissoes(struct conjunto *c_habilidades);
+void initHerois(struct Mundo *m);
+void initBases(struct Mundo *m);
+void initMissoes(struct Mundo *m);
 void initEventos(struct Mundo *m);
 void evento_chega(int h, int b, struct Mundo *m);
 void evento_espera(int h, int b, struct Mundo *m);

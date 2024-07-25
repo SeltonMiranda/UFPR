@@ -8,22 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
 #include <math.h>
 
 struct Mundo *initMundo()
 {
-        int i;
         struct Mundo *mundo;
-        struct conjunto *c_habilidades;
-
-        /* Facilita a criacao de subconjuntos de habilidades necessarias */
-        c_habilidades = cria_cjt(N_HABILIDADES);
-        if (!c_habilidades) 
-                MEM_ALLOC_ERR("c_habilidades");
-        
-        for (i = 0; i < N_HABILIDADES; i++) 
-                insere_cjt(c_habilidades, i);
-
         mundo = malloc(sizeof(struct Mundo));
         if (!mundo) {
                 MEM_ALLOC_ERR("mundo");
@@ -34,20 +24,20 @@ struct Mundo *initMundo()
         mundo->nHerois = N_HEROIS;
         mundo->nBases = N_BASES;
         mundo->nMissoes = N_MISSOES;
-        mundo->herois = initHerois(c_habilidades);
-        mundo->bases = initBases();
-        mundo->missoes = initMissoes(c_habilidades);
         mundo->lista_eventos = cria_lef();
         if (!mundo->lista_eventos)
                 MEM_ALLOC_ERR("mundo->lista_eventos");
 
-        destroi_cjt(c_habilidades);
+        initBases(mundo);
+        initMissoes(mundo);
+        initHerois(mundo);
+
         return mundo;
 }
 
 static int rBetween(int a, int b)
 {
-        return a + rand() % (b - a + 1); 
+        return rand() % (b - a + 1) + a; 
 }
 
 int getTimer(struct Mundo *m)
@@ -65,74 +55,60 @@ struct lef_t *getListaDeEventos(struct Mundo *m)
         return m->lista_eventos;
 }
 
-struct Heroi *initHerois(struct conjunto *c_habilidades)
+void initHerois(struct Mundo *m)
 {
-        struct Heroi *herois;
-        int i;
-
-        herois = malloc(sizeof(struct Heroi) * N_HEROIS);
-        if (!herois)
-                MEM_ALLOC_ERR("initHerois"); 
-
+        int i, qnt;
         for (i = 0; i < N_HEROIS; i++) {
-                herois[i].id = i;
-                herois[i].exp = 0;
-                herois[i].paciencia = rBetween(0, 100);
-                herois[i].vel = rBetween(50, 5000);
-                herois[i].hab = cria_subcjt_cjt(c_habilidades, rBetween(1, 3));
+                m->herois[i].id = i;
+                m->herois[i].exp = 0;
+                m->herois[i].paciencia = rBetween(0, 100);
+                m->herois[i].vel = rBetween(50, 5000);
+                m->herois[i].hab = cria_cjt(N_HABILIDADES);
+                qnt = rBetween(1, 3);
+
+                while (cardinalidade_cjt(m->herois[i].hab) < qnt)
+                        insere_cjt(m->herois[i].hab, rBetween(0, N_HABILIDADES - 1));
         }
 
-        return herois;
 }
 
-struct Base *initBases()
+void initBases(struct Mundo *m)
 {
-        struct Base *bases;
         int i;
-
-        bases = malloc(sizeof(struct Base) * N_BASES);
-        if (!bases)
-                MEM_ALLOC_ERR("initBases");
-        
         for (i = 0; i < N_BASES; i++) {
-                bases[i].id = i;
-                bases[i].pos_x = rBetween(0, TAMANHO_MUNDO - 1);
-                bases[i].pos_y = rBetween(0, TAMANHO_MUNDO - 1);
-                bases[i].nHerois = rBetween(3, 10);
-                bases[i].hPresentes = cria_cjt(bases[i].nHerois);
-                if (!bases[i].hPresentes) {
-                        MEM_ALLOC_ERR("bases[i].hPresentes");
+                m->bases[i].id = i;
+                m->bases[i].pos_x = rBetween(0, TAMANHO_MUNDO - 1);
+                m->bases[i].pos_y = rBetween(0, TAMANHO_MUNDO - 1);
+                m->bases[i].nHerois = rBetween(3, 10);
+                m->bases[i].hPresentes = cria_cjt(m->bases[i].nHerois);
+                if (!m->bases[i].hPresentes) {
+                        MEM_ALLOC_ERR("m->bases[i].hPresentes");
                 }
-                bases[i].fHerois = fila_cria();
-                if (!bases[i].fHerois) {
-                        MEM_ALLOC_ERR("bases[i].fHerois");
+                m->bases[i].fHerois = fila_cria();
+                if (!m->bases[i].fHerois) {
+                        MEM_ALLOC_ERR("m->bases[i].fHerois");
                 }
         } 
-
-        return bases;
 }
 
-struct Missao *initMissoes(struct conjunto *c_habilidades)
+void initMissoes(struct Mundo *m)
 {
-        struct Missao *missoes;
-        int i, total_hab;
-
-        missoes = malloc(sizeof(struct Missao) * N_MISSOES);
-        if (!missoes)
-                MEM_ALLOC_ERR("missoes");
-
+        int i, qnt;
         for (i = 0; i < N_MISSOES; i++) {
-                missoes[i].id = i;
-                missoes[i].cumprida = 0;
-                missoes[i].tentativa = 1;
-                missoes[i].pos_x = rBetween(0, TAMANHO_MUNDO - 1);
-                missoes[i].pos_y = rBetween(0, TAMANHO_MUNDO - 1);
-                total_hab = rBetween(6, 10);
-                missoes[i].hab_requeridas = cria_subcjt_cjt(c_habilidades,
-                                                            total_hab);
+                m->missoes[i].id = i;
+                m->missoes[i].cumprida = 0;
+                m->missoes[i].tentativa = 1;
+                m->missoes[i].pos_x = rBetween(0, TAMANHO_MUNDO - 1);
+                m->missoes[i].pos_y = rBetween(0, TAMANHO_MUNDO - 1);
+                m->missoes[i].hab_requeridas = cria_cjt(N_HABILIDADES); 
+                if (!m->missoes[i].hab_requeridas)
+                        MEM_ALLOC_ERR("initMissoes");
+                qnt = rBetween(6, 10);
+
+                while (cardinalidade_cjt(m->missoes[i].hab_requeridas) < qnt)
+                        insere_cjt(m->missoes[i].hab_requeridas, rBetween(0, N_HABILIDADES - 1));
         } 
 
-        return missoes;
 }
 
 void initEventos(struct Mundo *m)
@@ -141,17 +117,18 @@ void initEventos(struct Mundo *m)
         for (i = 0; i < m->nHerois; i++) {
                 base = rBetween(0, m->nBases - 1);
                 tempo = rBetween(0, 4320);
-                insere_lef(m->lista_eventos, cria_evento(tempo, CHEGA,
-                                m->herois[i].id, base)); 
+                insere_lef(m->lista_eventos,
+                           cria_evento(tempo, CHEGA, i, base)); 
         }        
 
         for (i = 0; i < m->nMissoes; i++) {
                 tempo = rBetween(0, T_FIM_DO_MUNDO);
-                insere_lef(m->lista_eventos, cria_evento(tempo, MISSAO,
-                                m->missoes[i].id, 0)); 
+                insere_lef(m->lista_eventos,
+                           cria_evento(tempo, MISSAO, i, 0)); 
         }
-        
-        insere_lef(m->lista_eventos, cria_evento(T_FIM_DO_MUNDO, FIM, 0, 0)); 
+
+        insere_lef(m->lista_eventos,
+                   cria_evento(T_FIM_DO_MUNDO, FIM, 0, 0)); 
 }
 
 void evento_chega(int h, int b, struct Mundo *m)
@@ -268,13 +245,13 @@ void evento_sai(int h, int b, struct Mundo *m)
         insere_lef(m->lista_eventos, e2);
 }
 
-static int dist_cartesiana(int x1, int y1, int x2, int y2)
+static int distCartesiana(int x1, int y1, int x2, int y2)
 {
         int deltax, deltay;
         deltax = x1 - x2;
         deltay = y1 - y2;
 
-        return sqrt(deltax * deltax + deltay * deltay);
+        return (int)sqrt(deltax * deltax + deltay * deltay);
 }
 
 void evento_viaja(int h, int d, struct Mundo *m)
@@ -283,10 +260,10 @@ void evento_viaja(int h, int d, struct Mundo *m)
         struct evento_t *e;
 
         base_atual = m->herois[h].base; 
-        dist = dist_cartesiana(m->bases[base_atual].pos_x,
-                               m->bases[base_atual].pos_y,
-                               m->bases[d].pos_x,
-                               m->bases[d].pos_y);
+        dist = distCartesiana(m->bases[base_atual].pos_x,
+                              m->bases[base_atual].pos_y,
+                              m->bases[d].pos_x,
+                              m->bases[d].pos_y);
         duracao = dist / m->herois[h].vel;
 
         e = cria_evento(m->timer + duracao, CHEGA, h, d);
@@ -295,79 +272,99 @@ void evento_viaja(int h, int d, struct Mundo *m)
         printf("%6d: VIAJA  HEROI %2d BASE %d BASE %d DIST %d VEL %d CHEGA %d\n",
                m->timer, h, base_atual, d, dist, m->herois[h].vel,
                m->timer + duracao);
-        
+
 }
 
-int calc_bmp(int id_m, struct Mundo *m)
+static struct conjunto *uniaoHabilidades(struct Mundo *m, int idBase)
 {
-        struct conjunto *total_hab_atual, *total_hab_anterior;
-        int i, dist, Mpos_x, Mpos_y, menor_dist, base, heroi;
-        Mpos_x = m->missoes[id_m].pos_x;
-        Mpos_y = m->missoes[id_m].pos_y;
+        struct conjunto *uniao, *uniao_anterior;
+        int heroi;
 
-        dist = dist_cartesiana(Mpos_x, Mpos_y,
-                                m->bases[0].pos_x,
-                                m->bases[0].pos_y);
-        menor_dist = dist;
-        base = 0;
-        for (i = 1; i < m->nBases; i++) {
-                dist = dist_cartesiana(Mpos_x, Mpos_y,
-                                       m->bases[i].pos_x,
-                                       m->bases[i].pos_y);
-                if (dist < menor_dist) {
-                        menor_dist = dist;
-                        base = i;
+        inicia_iterador_cjt(m->bases[idBase].hPresentes);
+        incrementa_iterador_cjt(m->bases[idBase].hPresentes, &heroi);
+
+        uniao_anterior = NULL;
+        uniao = copia_cjt(m->herois[heroi].hab);
+        while (incrementa_iterador_cjt(m->bases[idBase].hPresentes, &heroi)) {
+                uniao_anterior = uniao;
+                uniao = uniao_cjt(uniao, m->herois[heroi].hab);
+                uniao_anterior = destroi_cjt(uniao_anterior);
+        }
+        return uniao;
+}
+
+static int calc_bmp(int id_m, struct Mundo *m)
+{
+        int dist[N_BASES];
+        struct conjunto *uniao;
+        int i, j, Mposx, Mposy, Bposx, Bposy, baseEscolhida;
+        int minDist, minIndex;
+
+        Mposx = m->missoes[id_m].pos_x;
+        Mposy = m->missoes[id_m].pos_y;
+        baseEscolhida = -1;
+
+        /* Calcula a distancia de cada base para a missao */
+        for (i = 0; i < N_BASES; i++) {
+                Bposx = m->bases[i].pos_x;
+                Bposy = m->bases[i].pos_y;
+                dist[i] = distCartesiana(Mposx, Mposy, Bposx, Bposy);
+        }
+
+        j = 0;
+        while (j < N_BASES) {
+                minDist = INT_MAX;
+                minIndex = -1;
+
+                /* Encontra a base mais proxima */
+                for (i = 0; i < N_BASES; i++) {
+                        if (dist[i] >= 0 && dist[i] < minDist) {
+                                minDist = dist[i];
+                                minIndex = i;
+                        }
                 }
+
+                if (vazio_cjt(m->bases[minIndex].hPresentes)) {
+                        dist[minIndex] = -1;
+                } else {
+                        printf("%6d: MISSAO %d BASE %d DIST %d HEROIS ", m->timer, id_m, minIndex, minDist);
+                        imprime_cjt(m->bases[minIndex].hPresentes);
+
+                        uniao = uniaoHabilidades(m, minIndex);
+                        printf("%6d: MISSAO %d HAB BASE %d: ", m->timer, id_m, minIndex);
+                        imprime_cjt(uniao);
+
+                        if (contido_cjt(m->missoes[id_m].hab_requeridas, uniao)) {
+                                baseEscolhida = minIndex;
+                                uniao = destroi_cjt(uniao);
+                                return baseEscolhida;
+                        }
+
+                        uniao = destroi_cjt(uniao);
+                        
+                        /* Caso a uniao das habilidades dos herois nao seja
+                        *  suficiente, nao precisamos mais procurar pela base
+                        */
+                        dist[minIndex] = -1;
+                }
+                j++;
         }
-
-
-        printf("%6d: MISSAO %d BASE %d DIST %d HEROIS ", m->timer,
-                                                        id_m, base, dist);
- 
-        if (vazio_cjt(m->bases[base].hPresentes))
-                return -1;
-
-        imprime_cjt(m->bases[base].hPresentes);
-        
-        inicia_iterador_cjt(m->bases[base].hPresentes);
-        incrementa_iterador_cjt(m->bases[base].hPresentes, &heroi);
-        total_hab_anterior = NULL;
-        total_hab_atual = copia_cjt(m->herois[heroi].hab);
-        while (incrementa_iterador_cjt(m->bases[base].hPresentes, &heroi)) {
-                total_hab_anterior = total_hab_atual;
-                printf("%6d: MISSAO %d HAB HEROI %2d: ", m->timer, id_m,
-                                                        heroi);
-                imprime_cjt(m->herois[heroi].hab);
-                total_hab_atual = uniao_cjt(total_hab_atual,
-                                              m->herois[heroi].hab);
-                total_hab_anterior = destroi_cjt(total_hab_anterior);
-        }
-
-        printf("%6d: MISSAO %d UNIAO HAB BASE %d: ", m->timer, id_m, base);
-        imprime_cjt(total_hab_atual);
-
-        if (!contido_cjt(total_hab_atual, m->missoes[id_m].hab_requeridas)) {
-                destroi_cjt(total_hab_atual);
-                return -1;
-        } else {
-                destroi_cjt(total_hab_atual);
-                return base;
-        }
-        
+        return baseEscolhida;
 }
 
 void evento_missao(int mi, struct Mundo *m)
 {
-        printf("%6d: MISSAO %d TENT %d HAB REQ: ", m->timer, mi,
-                                                m->missoes[mi].tentativa);
+        printf("%6d: MISSAO %d HAB REQ: ", m->timer, mi);
         imprime_cjt(m->missoes[mi].hab_requeridas);
 
         struct evento_t *e;
         int bmp, heroi;
+
         bmp = calc_bmp(mi, m);
         if (bmp == -1) {
                 e = cria_evento(m->timer + 24 * 60, MISSAO, mi, 0);
                 insere_lef(m->lista_eventos, e);
+
                 m->missoes[mi].tentativa++;
                 printf("%6d: MISSAO %d IMPOSSIVEL\n", m->timer, mi);
         } else {
@@ -375,6 +372,7 @@ void evento_missao(int mi, struct Mundo *m)
                 while(incrementa_iterador_cjt(m->bases[bmp].hPresentes, &heroi)) {
                         m->herois[heroi].exp++;
                 }
+
                 m->missoes[mi].cumprida = 1;
                 printf("%6d: MISSAO %d CUMPRIDA BASE %d\n", m->timer, mi, bmp);
         }
@@ -389,18 +387,15 @@ void evento_fim(struct Mundo **m)
                 printf("HEROI %2d PAC %2d VEL %4d EXP %4d HABS ",
                        (*m)->herois[i].id, (*m)->herois[i].paciencia,
                        (*m)->herois[i].vel, (*m)->herois[i].exp);
+
                 imprime_cjt((*m)->herois[i].hab);
                 destroi_cjt((*m)->herois[i].hab);
         }
-        free((*m)->herois);
-        (*m)->herois = NULL;
 
         for (i = 0; i < (*m)->nBases; i++) {
                 destroi_cjt((*m)->bases[i].hPresentes);
                 fila_destroi(&(*m)->bases[i].fHerois);
         }
-        free((*m)->bases);
-        (*m)->bases = NULL;
 
         min_tent = (*m)->missoes[0].tentativa;
         max_tent = (*m)->missoes[0].tentativa;
@@ -409,10 +404,10 @@ void evento_fim(struct Mundo **m)
         for (i = 0; i < (*m)->nMissoes; i++) {
                 if ((*m)->missoes[i].cumprida)
                         missoes_cumpridas++;
-                
+
                 if ((*m)->missoes[i].tentativa < min_tent)
                         min_tent = (*m)->missoes[i].tentativa;
-                
+
                 if ((*m)->missoes[i].tentativa > max_tent)
                         max_tent = (*m)->missoes[i].tentativa;
 
@@ -421,11 +416,10 @@ void evento_fim(struct Mundo **m)
         }
         printf("MISSOES CUMPRIDAS: %d/%d (%.2f%%)\n", missoes_cumpridas,
                (*m)->nMissoes, ((double)missoes_cumpridas / (*m)->nMissoes * 100));
+
         printf("TENTATIVA/MISSAO: MIN %d, MAX %d, MEDIA %.2f\n",
                min_tent, max_tent, (double)tentativas / (*m)->nMissoes);
 
-        free((*m)->missoes);
-        (*m)->missoes = NULL;
 }
 
 void termina_simulacao(struct Mundo **m)
