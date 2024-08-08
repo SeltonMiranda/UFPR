@@ -35,7 +35,7 @@
         exit(1); \
 } while (0);
 
-struct Mundo {
+typedef struct Mundo {
         int timer;
         int nHerois;
         int nBases;
@@ -45,26 +45,60 @@ struct Mundo {
         struct Missao missoes[N_MISSOES];
         struct Heroi herois[N_HEROIS];
         struct lef_t *lista_eventos;
-};
+} Mundo;
 
-struct Mundo *initMundo();
-void initHerois(struct Mundo *m);
-void initBases(struct Mundo *m);
-void initMissoes(struct Mundo *m);
-void initEventos(struct Mundo *m);
-void evento_chega(int h, int b, struct Mundo *m);
-void evento_espera(int h, int b, struct Mundo *m);
-void evento_avisa(int b, struct Mundo *m);
-void evento_entra(int h, int b, struct Mundo *m);
-void evento_sai(int h, int b, struct Mundo *m);
-void evento_viaja(int h, int d, struct Mundo *m);
-void evento_desiste(int h, int b, struct Mundo *m);
-void evento_missao(int mi, struct Mundo *m);
-void evento_fim(struct Mundo **m);
-void termina_simulacao(struct Mundo **m);
-void destroi_mundo(struct Mundo **m);
-int getTimer(struct Mundo *m);
-void setTimer(struct Mundo *m, int tempo);
-struct lef_t *getListaDeEventos(struct Mundo *m);
+/* Inicializa as estruturas do mundo */
+Mundo *initMundo();
 
-#endif
+/* Inicializa os herois */
+void initHerois(Mundo *m);
+
+/* Inicializa as bases */
+void initBases(Mundo *m);
+
+/* Inicializa as missoes */
+void initMissoes(Mundo *m);
+
+/* Inicializa os evento */
+void initEventos(Mundo *m);
+
+/* Heroi chega na base */ 
+void evento_chega(int h, int b, Mundo *m);
+
+/* Heroi espera na fila */
+void evento_espera(int h, int b, Mundo *m);
+
+/* Avisa porteiro que o heroi entrou na fila */
+void evento_avisa(int b, Mundo *m);
+
+/* Heroi entra na base */
+void evento_entra(int h, int b, Mundo *m);
+
+/* Heroi sai da base */
+void evento_sai(int h, int b, Mundo *m);
+
+/* Heroi viaja para outra base */
+void evento_viaja(int h, int d, Mundo *m);
+
+/* Heroi desiste de entrar na fila */
+void evento_desiste(int h, int b, Mundo *m);
+
+/* Missao reune as habilidades dos herois na base */
+void evento_missao(int mi, Mundo *m);
+
+/* Ultimo evento */
+void evento_fim(Mundo **m);
+
+/* Destroi o mundo */
+void termina_simulacao(Mundo **m);
+
+/* Retorna o tempo atual do mundo */
+int getTimer(Mundo *m);
+
+/* Ajusta o tempo do mundo*/
+void setTimer(Mundo *m, int tempo);
+
+/* Retorna a lista de eventos do mundo*/
+struct lef_t *getListaDeEventos(Mundo *m);
+
+#endif /* MUNDO_H */

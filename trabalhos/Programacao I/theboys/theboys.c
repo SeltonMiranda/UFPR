@@ -8,7 +8,7 @@
 int main()
 {
         srand (0);
-        struct Mundo *mundo;
+        Mundo *mundo;
         struct evento_t *ev;
 
         mundo = initMundo();
