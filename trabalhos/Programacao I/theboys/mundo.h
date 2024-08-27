@@ -36,15 +36,15 @@
 } while (0);
 
 typedef struct Mundo {
-        int timer;
-        int nHerois;
-        int nBases;
-        int nMissoes;
-        int nHab;
-        struct Base bases[N_BASES];
-        struct Missao missoes[N_MISSOES];
-        struct Heroi herois[N_HEROIS];
-        struct lef_t *lista_eventos;
+        int timer; /* Tempo atual da simulacao */
+        int nHerois; /* Quantidade de herois */
+        int nBases; /* Quantidade de bases */
+        int nMissoes; /* Quantidade de missoes */
+        int nHab; /* Quantidade de habilidades diferentes */
+        struct Base bases[N_BASES]; /* Vetor de bases */
+        struct Missao missoes[N_MISSOES]; /* Vetor de missoes */
+        struct Heroi herois[N_HEROIS]; /* Vetor de herois */
+        struct lef_t *lista_eventos; /* lista de eventos do mundo */
 } Mundo;
 
 /* Inicializa as estruturas do mundo */
@@ -86,7 +86,7 @@ void evento_desiste(int h, int b, Mundo *m);
 /* Missao reune as habilidades dos herois na base */
 void evento_missao(int mi, Mundo *m);
 
-/* Ultimo evento */
+/* Ultimo evento, desaloca as estruturas do mundo */
 void evento_fim(Mundo **m);
 
 /* Destroi o mundo */
@@ -100,5 +100,4 @@ void setTimer(Mundo *m, int tempo);
 
 /* Retorna a lista de eventos do mundo*/
 struct lef_t *getListaDeEventos(Mundo *m);
-
 #endif /* MUNDO_H */

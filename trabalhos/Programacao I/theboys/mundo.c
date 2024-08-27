@@ -335,7 +335,8 @@ static struct conjunto *uniaoHabilidades(Mundo *m, int idBase)
 }
 
 
-/* Retorna o id da base que possui os herois com as habilidades necessarias 
+/* 
+ * Retorna o id da base que possui os herois com as habilidades necessarias 
  * para completar a missao, caso NENHUMA base preencha os requisitos retorna -1
  */
 static int calc_bmp(int id_m, Mundo *m)
