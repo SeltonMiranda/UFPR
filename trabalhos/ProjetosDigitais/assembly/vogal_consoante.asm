@@ -1,4 +1,3 @@
-        addi sp, sp, -1
 main:
         addi s0, zero, 0x41
         addi s1, zero, 0x45
@@ -18,11 +17,6 @@ endProgram:
         ebreak
 
 vogal:
-        addi sp, sp, -12 
-        sw sp, ra, 8
-        sw sp, s0, 4
-        sw sp, s1, 0
-        
         addi t1, zero, 0x61
         beq a0, t1, ret_1
 
@@ -55,16 +49,8 @@ vogal:
 
 ret_1:
         addi a0, zero, 1
-        ;;lw ra, sp, 8
-        ;;lw s0, sp, 4
-        ;;lw s1, sp, 0
-        ;;addi sp, sp, 12
         jalr zero, ra, 0
         
 ret_0:
         addi a0, zero, 0
-        ;;lw ra, sp, 8
-        ;;lw s0, sp, 4
-        ;;lw s1, sp, 0
-        ;;addi sp, sp, 12
         jalr zero, ra, 0
