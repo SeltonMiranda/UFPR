@@ -10,6 +10,7 @@ int image_read(const char* path, Image* image)
     FILE* input = fopen(path, "rb");
     if (input == NULL) return 0;
 
+    // Lê o tipo de pgm
     fscanf(input, "%2s", type);
     if (strcmp(type, "P2") == 0) {
         img_type = P2;
@@ -45,10 +46,12 @@ int read_P5_PGM(FILE* input, Image* image)
     if (image->pixels == NULL) return 0;
 
     if (fread(image->pixels, sizeof(char),
-              image->width * image->height, input) == 0) {
+        image->width * image->height, input) == 0)
+    {
         free(image->pixels);
         return 0;
     }
+    // Precisa cortar uma parte da imagem :d
     image_chop_blank_rows(image);
     return 1;
 }
@@ -71,6 +74,7 @@ int read_P2_PGM(FILE* input, Image* image)
             image->pixels[i] = c;
         }
     }
+    // Precisa cortar uma parte da imagem :d
     image_chop_blank_rows(image);
     return 1;
 }
@@ -101,7 +105,7 @@ int image_write(const char* name, Image* image)
             write_P5_PGM(output, image);
             break;
         default:
-            fprintf(stderr, "Sorry, not implemented yet:)))))))\n");
+            fprintf(stderr, "Sorry, not implemented yet :(\n");
             return 0;
     }
     fclose(output);
@@ -113,7 +117,6 @@ void write_P2_PGM(FILE* output, Image* image)
 {
     fprintf(output, "%s\n", "P2");
     fprintf(output, IMG_FMT, IMG_ARGS(image));
-    //fprintf(output, "%u\n", image->maxval);
     for (uint32_t y = 0; y < image->height; y++) {
         for (uint32_t x = 0; x < image->width; x++) {
             fprintf(output, "%hhu", image->pixels[y * (image->width) + x]);
@@ -130,7 +133,6 @@ void write_P5_PGM(FILE* output, Image* image)
 {
     fprintf(output, "%s\n", "P5");
     fprintf(output, IMG_FMT, IMG_ARGS(image));
-    //fprintf(output, "%u\n", image->maxval);
     fwrite(image->pixels, 1, image->width * image->height, output);
 }
 

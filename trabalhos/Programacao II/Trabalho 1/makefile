@@ -1,5 +1,5 @@
 # Executável
-MAIN=lbp
+MAIN=LBP
 
 # FLAGS de compilação
 CFLAGS= -Wall -Wextra --std=c99 -lm

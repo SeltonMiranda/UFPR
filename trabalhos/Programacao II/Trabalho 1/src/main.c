@@ -5,6 +5,9 @@
 #include <string.h>
 #include <float.h>
 
+#define PGM_EXT ".pgm"
+#define LBP_EXT ".lbp"
+
 int main(int argc, char** argv)
 {
     if (argc < 3) {
@@ -12,11 +15,12 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    int i_flag = 0, d_flag = 0;
     int opt;
-    int i_flag, d_flag;
+    Image image; 
+    Directory dir;
     char *dir_path = NULL;
     char *img_path = NULL;
-    Image image; 
 
     while ((opt = getopt(argc, argv, "d:i:o:h:")) != -1) {
         switch(opt) {
@@ -49,10 +53,9 @@ int main(int argc, char** argv)
         }
     }
 
-    Directory dir;
     if (i_flag && d_flag) {
-        if (!dir_get_files_by_ext(&dir, dir_path, ".lbp")) {
-            dir_get_files_by_ext(&dir, dir_path, ".pgm");
+        if (!dir_get_files_by_ext(&dir, dir_path, LBP_EXT)) {
+            dir_get_files_by_ext(&dir, dir_path, PGM_EXT);
             for (ssize_t i = 0; i <= dir.d_count; i++) {
                 Image current_img;
                 Image current_LBP_img;
@@ -62,7 +65,7 @@ int main(int argc, char** argv)
                 LBP_apply(&current_LBP_img, &current_img);
                 LBP_histogram(histogram, &current_LBP_img);
                 LBP_normalize(histogram);
-                replace_extension(dir.docs[i], ".lbp");
+                replace_extension(dir.docs[i], LBP_EXT);
                 LBP_write_histogram(histogram, dir.docs[i]);
                 image_destroy(&current_img);
                 image_destroy(&current_LBP_img);
@@ -71,7 +74,7 @@ int main(int argc, char** argv)
 
         float hist[MAX_PATTERNS];
         float dist[dir.d_count];
-        replace_extension(img_path, ".lbp");
+        replace_extension(img_path, LBP_EXT);
         LBP_read_histogram(hist, img_path);
 
         for (ssize_t i = 0; i <= dir.d_count; i++) {
@@ -84,32 +87,20 @@ int main(int argc, char** argv)
                 LBP_read_histogram(hist_2_compare, dir.docs[i]);
                 calculated_dist = LBP_dist(hist, hist_2_compare);
                 dist[i] = calculated_dist;
-                //printf("dist %zd: %.6f, nome: %s\n", i, dist[i], dir.docs[i]);
             }
 
         } 
 
-        for (ssize_t i = 0; i < dir.d_count; i++) {
-            printf("dist i:%zd = %.6f\n", i, dist[i]);
-        }
-
         float min = dist[0];
         ssize_t min_idx = 0;
         for (ssize_t i = 1; i < dir.d_count; i++) {
-            //if (strcmp(img_path, dir.docs[i]) == 0)
-            //    continue;
-
-            //printf("dist: %.6f\n ", dist[i]);
-            //printf("dentro do if minimo: %.6f\n", min);
             if (min > dist[i]) {
                 min = dist[i];
                 min_idx = i;
             }
         }
-        //printf("min_idx: %zd\n", min_idx);
-        replace_extension(dir.docs[min_idx], ".pgm");
+        replace_extension(dir.docs[min_idx], PGM_EXT);
         printf("Imagem mais similar: %s %.6f\n", dir.docs[min_idx], min);
     }
-
     return EXIT_SUCCESS;
 }

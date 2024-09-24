@@ -5,29 +5,37 @@
 
 int LBP_apply(Image* LBP, Image* image)
 {
+    // Inicializa os pixels da imagem LBP com zeros
     LBP->pixels = calloc(image->width * image->height, sizeof(char));
     if (LBP->pixels == NULL) return 0;
+
     LBP->width = image->width;
     LBP->height = image->height;
     LBP->maxval = image->maxval;
     LBP->type = image->type;
 
-    // Aplica o LBP em sentido horário a partir do pixel superior esquerdo
-    // em relação ao pixel central
+    /**
+     * Aplica o LBP em sentido horário a partir do pixel (p1..7)
+     * superior esquerdo em relação ao pixel central (C)
+     * ------->
+     * p7 p6 p5 |
+     * p0 C  p4 |
+     * p1 p2 p3 v
+     **/
     for (uint32_t y = 1; y < image->height - 1; y++) { 
         for (uint32_t x = 1; x < image->width - 1; x++) {
             unsigned char center = image->pixels[y * (image->width) + x];
-            unsigned char code = 0; 
-            code |= (image->pixels[(y - 1) * (image->width) + (x - 1)] > center) << 7;
-            code |= (image->pixels[(y - 1) * (image->width) + (x - 0)] > center) << 6;
-            code |= (image->pixels[(y - 1) * (image->width) + (x + 1)] > center) << 5;
-            code |= (image->pixels[(y - 0) * (image->width) + (x + 1)] > center) << 4;
-            code |= (image->pixels[(y + 1) * (image->width) + (x + 1)] > center) << 3;
-            code |= (image->pixels[(y + 1) * (image->width) + (x - 0)] > center) << 2;
-            code |= (image->pixels[(y + 1) * (image->width) + (x - 1)] > center) << 1;
-            code |= (image->pixels[(y - 0) * (image->width) + (x - 1)] > center) << 0;
-            // Armazena o valor LBP na imagem LBP
-            LBP->pixels[y * (LBP->width) + x] = code;
+            unsigned char pattern = 0; 
+            // Zeros estão explícitos para melhorar a visualização do código
+            pattern |= (image->pixels[(y - 1) * (image->width) + (x - 1)] > center) << 7;
+            pattern |= (image->pixels[(y - 1) * (image->width) + (x - 0)] > center) << 6;
+            pattern |= (image->pixels[(y - 1) * (image->width) + (x + 1)] > center) << 5;
+            pattern |= (image->pixels[(y - 0) * (image->width) + (x + 1)] > center) << 4;
+            pattern |= (image->pixels[(y + 1) * (image->width) + (x + 1)] > center) << 3;
+            pattern |= (image->pixels[(y + 1) * (image->width) + (x - 0)] > center) << 2;
+            pattern |= (image->pixels[(y + 1) * (image->width) + (x - 1)] > center) << 1;
+            pattern |= (image->pixels[(y - 0) * (image->width) + (x - 1)] > center) << 0;
+            LBP->pixels[y * (LBP->width) + x] = pattern; // Armazena o valor LBP na imagem LBP
         }
     }
     return 1;
@@ -37,12 +45,12 @@ void LBP_histogram(float hist[MAX_PATTERNS], Image* LBP)
 {
     if (LBP == NULL) return;
 
+    // Inicializa o histograma com zeros
     for (size_t i = 0; i < MAX_PATTERNS; i++) {
         hist[i] = 0;
     }
-    //memset(hist, 0, MAX_PATTERNS * sizeof(float));
 
-    // Itera sobre os pixels e atualiza o histograma
+    // Itera sobre os pixels da imagem LBP e atualiza o histograma
     for (uint32_t y = 0; y < LBP->height; y++) {
         for (uint32_t x = 0; x < LBP->width; x++) {
             unsigned char class = LBP->pixels[y * (LBP->width) + x];
@@ -51,6 +59,7 @@ void LBP_histogram(float hist[MAX_PATTERNS], Image* LBP)
     }
 }
 
+// Função para comparar dois floats
 static int compare_floats(const void *a, const void *b)
 {
     float float_a = *((float*)a);
@@ -60,16 +69,18 @@ static int compare_floats(const void *a, const void *b)
 
 void LBP_normalize(float hist[MAX_PATTERNS])
 {
-    float sortedHist[MAX_PATTERNS]; // Array para armazenar a cópia do histograma
+    float sortedHist[MAX_PATTERNS];
     float high_frequency, low_frequency;
 
+    // Copiando o vetor original para o vetor que será ordenado
     memcpy(sortedHist, hist, MAX_PATTERNS * sizeof(float));
     qsort(sortedHist, MAX_PATTERNS, sizeof(float), compare_floats);
     
-    // Pega o valor minímo e máximo
+    // Pegamos o valor minímo e máximo
     low_frequency = sortedHist[0];    
     high_frequency = sortedHist[MAX_PATTERNS - 1];
 
+    // Normalização dos valores
     for (uint32_t i = 0; i < MAX_PATTERNS; i++) {
         float normValue = (hist[i] - low_frequency) / (high_frequency - low_frequency);
         hist[i] = normValue;
@@ -121,8 +132,8 @@ float LBP_dist(float hist_1[MAX_PATTERNS], float hist_2[MAX_PATTERNS])
 {
     float diffs[MAX_PATTERNS];
     for (size_t i = 0; i < MAX_PATTERNS; i++) {
-        float diff = hist_1[i] - hist_2[i]; // Diferença entre dois floats
-        diffs[i] = diff * diff; // diff^2
+        float diff = hist_1[i] - hist_2[i];
+        diffs[i] = diff * diff;
     }
 
     float summation = kahan_sum(diffs);
