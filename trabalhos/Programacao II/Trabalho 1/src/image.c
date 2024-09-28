@@ -69,7 +69,7 @@ int read_P2_PGM(FILE* input, Image* image)
     if (image->pixels == NULL) return 0;
 
     for (uint32_t i = 0; i < image->width * image->height; i++) {
-        unsigned char c;
+        uint8_t c;
         if (fscanf(input, "%hhu", &c) != 1) {
             free(image->pixels);
             return 0;
@@ -77,8 +77,6 @@ int read_P2_PGM(FILE* input, Image* image)
             image->pixels[i] = c;
         }
     }
-    // Precisa cortar uma parte da imagem :d
-    image_chop_blank_rows(image);
     return 1;
 }
 
@@ -120,7 +118,7 @@ int image_write(const char* name, Image* image)
 // Escreve uma imagem em ascii
 void write_P2_PGM(FILE* output, Image* image)
 {
-    fprintf(output, "P2\n%u %u\n%huu\n",
+    fprintf(output, "P2\n%u %u\n%hhu\n",
             image->width, image->height, image->maxval);
     for (uint32_t y = 0; y < image->height; y++) {
         for (uint32_t x = 0; x < image->width; x++) {
@@ -129,7 +127,9 @@ void write_P2_PGM(FILE* output, Image* image)
             if (x < image->width - 1)
                 fprintf(output, " ");
         }
-        fprintf(output, "\n");
+        if (y < image->height -1) {
+            fprintf(output, "\n");
+        }
     }
 }
 
