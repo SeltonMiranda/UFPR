@@ -5,66 +5,81 @@
 #include <string.h>
 #include <float.h>
 
-#define PGM_EXT ".pgm"
-#define LBP_EXT ".lbp"
-
+/* Converte as imagens presentes no diretório em LBP,
+ * criando os histogramas e salvando-os no próprio diretório
+ * de entrada
+ */
 void convert_images_2_LBP(Directory* dir)
 {
-    for (ssize_t i = 0; i <= dir->d_count; i++) {
+    for (size_t i = 0; i < dir->d_count; i++) {
         Image current_img;
         Image current_LBP_img;
         float histogram[MAX_PATTERNS];
+        char full_path[MAX_PATH_LEN];
+        snprintf(full_path, MAX_PATH_LEN, "%s/%s", dir->dir_name, dir->docs[i]);
 
         // Carregando imagem na mémoria e criando o histograma
-        image_read(dir->docs[i], &current_img);
+        image_read(full_path, &current_img);
         LBP_apply(&current_LBP_img, &current_img);
         LBP_histogram(histogram, &current_LBP_img);
         LBP_normalize(histogram);
 
         // Escrevendo o histograma num arquivo
-        replace_extension(dir->docs[i], LBP_EXT);
-        LBP_write_histogram(histogram, dir->docs[i]);
+        replace_extension(full_path, ".lbp");
+        LBP_write_histogram(histogram, full_path);
         image_destroy(&current_img);
         image_destroy(&current_LBP_img);
     }
 }
 
-int get_distances(Directory* dir, float hist[], const char* img_path, float dist[])
+/* Calcula as distâncias de cada histograma com o histograma da imagem de entrada
+ * retorna um vetor de distancias em hist[], retorna 1 em caso de sucesso e 0 em caso de falha
+ */
+int get_distances(Directory* dir, float hist[], const char* lbp_path, float dist[])
 {
-    for (ssize_t i = 0; i <= dir->d_count; i++) {
+    for (size_t i = 0; i < dir->d_count; i++) {
         float hist_2_compare[MAX_PATTERNS];
-        float calculated_dist;
 
-        if (strcmp(img_path, dir->docs[i]) == 0) {
+        if (strcmp(lbp_path, dir->docs[i]) == 0) {
             /* Se o nome são iguais, colocamos o maior valor possível de
              * float assim evita que sempre a mesma imagem seja comparada
              */
             dist[i] = FLT_MAX; 
         } else {
-            if (!LBP_read_histogram(hist_2_compare, dir->docs[i])) {
+            char full_LBP_path[MAX_PATH_LEN];
+            snprintf(full_LBP_path, MAX_PATH_LEN, "%s/%s", dir->dir_name, dir->docs[i]);
+
+            if (!LBP_read_histogram(hist_2_compare, full_LBP_path)) {
                 fprintf(stderr, "ERROR: Could not read file %s\n", dir->docs[i]);
                 return 0;
             }
-            calculated_dist = LBP_dist(hist, hist_2_compare);
-            dist[i] = calculated_dist;
+            dist[i] = LBP_dist(hist, hist_2_compare);
         }
     }
     return 1;
 }
 
+/*
+ * Verifica se o arquivo está presente no diretório
+ * retorna 1 caso esteja presente e 0 caso contrário
+ */
 int is_in_dir(Directory* dir, const char* filename) {
-    for (ssize_t i = 0; i <= dir->d_count; i++) {
+    for (size_t i = 0; i < dir->d_count; i++) {
         if (strcmp(dir->docs[i], filename) == 0)
             return 1;
     }
     return 0;
 }
 
-float find_min_value(float* dist, ssize_t len, ssize_t *min_idx)
+/*
+ * Encontra a menor distância presente no vetor de distâncias,
+ * retorna o valor da menor distância e o indíce da mesma, no parâmetro
+ */
+float find_min_value(float* dist, size_t len, size_t *min_idx)
 {
     float min = dist[0];
     *min_idx = 0;
-    for (ssize_t i = 1; i < len; i++) {
+    for (size_t i = 1; i < len; i++) {
         if (min > dist[i]) {
             min = dist[i];
             *min_idx = i;
@@ -107,6 +122,9 @@ int main(int argc, char** argv)
                     image_read(img_path, &image);
                     LBP_apply(&LBP, &image);
                     image_write(new_img_path, &LBP);
+
+                    image_destroy(&LBP);
+                    image_destroy(&image);
                     return EXIT_SUCCESS;
                 } else {
                     fprintf(stderr, "Argument -i is missing\n");
@@ -119,40 +137,42 @@ int main(int argc, char** argv)
     }
 
     if (i_flag && d_flag) {
-        // Talvez seja melhor jogar isso fora do if externo
-        // assim eu não preciso verificar para .pgm e .lbp
-        // ||||
-        // vvvv
-        if (!dir_get_files_by_ext(&dir, dir_path, LBP_EXT)) {
-            dir_get_files_by_ext(&dir, dir_path, PGM_EXT);
+        if (!dir_get_files_by_ext(&dir, dir_path, ".lbp")) {
+            dir_get_files_by_ext(&dir, dir_path, ".pgm");
             if (!is_in_dir(&dir, img_path)) {
                 fprintf(stderr, "ERROR: File %s does not exist\n", img_path);
-                return EXIT_FAILURE;
+                fprintf(stderr, "img_path: %s\n", img_path);
+                return 1;
             }
-        // ^^^^
-        // ||||
             convert_images_2_LBP(&dir);
         }
+        dir_get_files_by_ext(&dir, dir_path, ".lbp");
 
+        char img_LBP_path[MAX_NAME_LEN];
+        char full_LBP_path[MAX_PATH_LEN];
         float hist[MAX_PATTERNS];
         float dist[dir.d_count];
-        ssize_t min_idx;
+        size_t min_idx;
         float min;
 
-        replace_extension(img_path, LBP_EXT);
-        if (!is_in_dir(&dir, img_path)) {
-            fprintf(stderr, "ERROR: File %s does not exist\n", img_path);
-            return EXIT_FAILURE;
-        }
-        LBP_read_histogram(hist, img_path);
+        strncpy(img_LBP_path, img_path, MAX_NAME_LEN);
+        replace_extension(img_LBP_path, ".lbp");
 
-        if (!get_distances(&dir, hist, img_path, dist))
-            return EXIT_FAILURE;
+        // Note que o conteúdo do diretório sao os arquivos ".lbp"
+        if (!is_in_dir(&dir, img_LBP_path)) {
+            fprintf(stderr, "ERROR: File %s does not exist\n", img_LBP_path);
+            return 1;
+        }
+
+        snprintf(full_LBP_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_LBP_path);
+        LBP_read_histogram(hist, full_LBP_path);
+        if (!get_distances(&dir, hist, img_LBP_path, dist))
+            return 1;
 
         min = find_min_value(dist, dir.d_count, &min_idx);
-        replace_extension(dir.docs[min_idx], PGM_EXT);
+        replace_extension(dir.docs[min_idx], ".pgm");
         printf("Imagem mais similar: %s %.6f\n", dir.docs[min_idx], min);
     }
-    return EXIT_SUCCESS;
+    return 0;
 
 }

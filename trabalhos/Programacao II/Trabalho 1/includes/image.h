@@ -5,13 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Formato de impressão da struct Image
-#define IMG_FMT "%u %u\n%hhu\n"
-#define IMG_ARGS(img) (img)->width, (img)->height, (img)->maxval
-// Uso:
-// fprintf/printf("something:"IMG_FMT, IMG_ARGS(image));
-// --> A linguagem C concatena strings "s1""s2" no printf/fprintf
-
 typedef enum {
     P2 = 0,
     P5 = 1
@@ -21,8 +14,8 @@ typedef struct Image {
     PGM_TYPE type; // tipo do PGM
     uint32_t width; // Comprimento da imagem
     uint32_t height; // Altura da imagem
-    unsigned char* pixels; // Vetor de pixels
-    unsigned char maxval; // Valor máximo que o pixel pode assumir
+    uint8_t* pixels; // Vetor de pixels
+    uint8_t maxval; // Valor máximo que o pixel pode assumir
 } Image;
 
 // Retorna 1 em caso de sucesso e 0 em caso de falha

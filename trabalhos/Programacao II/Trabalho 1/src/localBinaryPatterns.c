@@ -1,21 +1,29 @@
 #include "../includes/localBinaryPatterns.h"
 
 #include <string.h>
+#include <errno.h>
 #include <math.h>
 
-int LBP_apply(Image* LBP, Image* image)
+static void copy_image_attributes_2_LBP(Image* LBP, Image* image)
 {
-    // Inicializa os pixels da imagem LBP com zeros
-    LBP->pixels = calloc(image->width * image->height, sizeof(char));
-    if (LBP->pixels == NULL) return 0;
-
     LBP->width = image->width;
     LBP->height = image->height;
     LBP->maxval = image->maxval;
     LBP->type = image->type;
+}
+
+int LBP_apply(Image* LBP, Image* image)
+{
+    // Inicializa os pixels da imagem LBP com zeros
+    LBP->pixels = calloc(image->width * image->height, sizeof(uint8_t));
+    if (LBP->pixels == NULL) {
+        fprintf(stderr, "ERROR: Couldn't allocate memory for LBP pixels\n");
+        return 0;
+    } 
+    copy_image_attributes_2_LBP(LBP, image);
 
     /**
-     * Aplica o LBP em sentido horário a partir do pixel (p1..7)
+     * Aplica o LBP em sentido horário a partir do pixel (p0..7)
      * superior esquerdo em relação ao pixel central (C)
      * ------->
      * p7 p6 p5 |
@@ -24,8 +32,8 @@ int LBP_apply(Image* LBP, Image* image)
      **/
     for (uint32_t y = 1; y < image->height - 1; y++) { 
         for (uint32_t x = 1; x < image->width - 1; x++) {
-            unsigned char center = image->pixels[y * (image->width) + x];
-            unsigned char pattern = 0; 
+            uint8_t center = image->pixels[y * (image->width) + x];
+            uint8_t pattern = 0; 
             // Zeros estão explícitos para melhorar a visualização do código
             pattern |= (image->pixels[(y - 1) * (image->width) + (x - 1)] > center) << 7;
             pattern |= (image->pixels[(y - 1) * (image->width) + (x - 0)] > center) << 6;
@@ -43,8 +51,6 @@ int LBP_apply(Image* LBP, Image* image)
 
 void LBP_histogram(float hist[MAX_PATTERNS], Image* LBP)
 {
-    if (LBP == NULL) return;
-
     // Inicializa o histograma com zeros
     for (size_t i = 0; i < MAX_PATTERNS; i++) {
         hist[i] = 0;
@@ -53,7 +59,7 @@ void LBP_histogram(float hist[MAX_PATTERNS], Image* LBP)
     // Itera sobre os pixels da imagem LBP e atualiza o histograma
     for (uint32_t y = 0; y < LBP->height; y++) {
         for (uint32_t x = 0; x < LBP->width; x++) {
-            unsigned char class = LBP->pixels[y * (LBP->width) + x];
+            uint8_t class = LBP->pixels[y * (LBP->width) + x];
             hist[class]++;
         }
     }
@@ -90,9 +96,15 @@ void LBP_normalize(float hist[MAX_PATTERNS])
 int LBP_write_histogram(float hist[MAX_PATTERNS], const char* name)
 {
     FILE* output = fopen(name, "wb");  
-    if (output == NULL) return 0;
-
-    if (fwrite(hist, sizeof(float), MAX_PATTERNS, output) == 0) {
+    if (output == NULL) {
+        fprintf(stderr, "ERROR Couldn't open file %s: %s\n",
+                name, strerror(errno));
+        return 0;
+    } 
+    fwrite(hist, sizeof(float), MAX_PATTERNS, output);
+    if (ferror(output)) {
+        fprintf(stderr, "ERROR couldn't write to file %s: %s\n",
+                name, strerror(errno));
         fclose(output);
         return 0;
     }
@@ -103,9 +115,15 @@ int LBP_write_histogram(float hist[MAX_PATTERNS], const char* name)
 int LBP_read_histogram(float hist[MAX_PATTERNS], const char* name)
 {
     FILE* input = fopen(name, "rb");
-    if (input == NULL) return 0;
-    
-    if (fread(hist, sizeof(float), MAX_PATTERNS, input) == 0) {
+    if (input == NULL) {
+        fprintf(stderr, "ERROR Couldn't open file %s: %s\n",
+                name, strerror(errno));
+        return 0;
+    } 
+    fread(hist, sizeof(float), MAX_PATTERNS, input);
+    if (ferror(input)) {
+        fprintf(stderr, "ERROR Couldn't read file %s: %s\n",
+                name, strerror(errno));
         fclose(input);
         return 0;
     }

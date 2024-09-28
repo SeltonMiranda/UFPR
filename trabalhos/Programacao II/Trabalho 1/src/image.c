@@ -1,6 +1,7 @@
 #include "../includes/image.h"
 
 #include <string.h>
+#include <errno.h>
 
 int image_read(const char* path, Image* image)
 {
@@ -24,6 +25,7 @@ int image_read(const char* path, Image* image)
 
     // Como os desenvolvedores do kernel do linux fazem
     int ret = 0;
+    image->type = img_type;
     switch(img_type) {
         case P2:
             ret = read_P2_PGM(input, image);
@@ -39,15 +41,17 @@ int image_read(const char* path, Image* image)
 // Lê uma imagem em binário
 int read_P5_PGM(FILE* input, Image* image)
 {
-    image->type = P5;
     fscanf(input, "%u %u", &image->width, &image->height);
     fscanf(input, "%hhu", &image->maxval);
     image->pixels = malloc(image->width * image->height);
-    if (image->pixels == NULL) return 0;
-
+    if (image->pixels == NULL) {
+        fprintf(stderr, "ERROR: Could not allocate memory for pixels\n");
+        return 0;
+    }
     if (fread(image->pixels, sizeof(char),
         image->width * image->height, input) == 0)
     {
+        fprintf(stderr, "ERROR: Could not read file %s\n", strerror(errno));
         free(image->pixels);
         return 0;
     }
@@ -59,7 +63,6 @@ int read_P5_PGM(FILE* input, Image* image)
 // Lê uma imagem em ascii
 int read_P2_PGM(FILE* input, Image* image)
 {
-    image->type = P2;
     fscanf(input, "%u %u", &image->width, &image->height);
     fscanf(input, "%hhu", &image->maxval);
     image->pixels = malloc(image->width * image->height);
@@ -92,10 +95,12 @@ void image_chop_blank_rows(Image *image)
 
 int image_write(const char* name, Image* image)
 {
-    if (name == NULL) return 0;
-
     FILE* output = fopen(name, "wb");
-    if (output == NULL) return 0;
+    if (output == NULL) {
+        fprintf(stderr, "ERROR: Could not open file %s: %s\n",
+                name, strerror(errno));
+        return 0; 
+    }
 
     switch(image->type) {
         case P2:
@@ -115,8 +120,8 @@ int image_write(const char* name, Image* image)
 // Escreve uma imagem em ascii
 void write_P2_PGM(FILE* output, Image* image)
 {
-    fprintf(output, "%s\n", "P2");
-    fprintf(output, IMG_FMT, IMG_ARGS(image));
+    fprintf(output, "P2\n%u %u\n%huu\n",
+            image->width, image->height, image->maxval);
     for (uint32_t y = 0; y < image->height; y++) {
         for (uint32_t x = 0; x < image->width; x++) {
             fprintf(output, "%hhu", image->pixels[y * (image->width) + x]);
@@ -131,8 +136,8 @@ void write_P2_PGM(FILE* output, Image* image)
 // Escreve uma imagem em binário
 void write_P5_PGM(FILE* output, Image* image)
 {
-    fprintf(output, "%s\n", "P5");
-    fprintf(output, IMG_FMT, IMG_ARGS(image));
+    fprintf(output, "P5\n%u %u\n%huu\n",
+            image->width, image->height, image->maxval);
     fwrite(image->pixels, 1, image->width * image->height, output);
 }
 
