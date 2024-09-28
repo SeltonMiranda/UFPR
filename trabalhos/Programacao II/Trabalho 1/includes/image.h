@@ -8,10 +8,10 @@
 typedef enum {
     P2 = 0,
     P5 = 1
-} PGM_TYPE;
+} FORMAT_TYPE;
 
 typedef struct Image {
-    PGM_TYPE type; // tipo do PGM
+    FORMAT_TYPE type; // Formato da imagem
     uint32_t width; // Comprimento da imagem
     uint32_t height; // Altura da imagem
     uint8_t* pixels; // Vetor de pixels

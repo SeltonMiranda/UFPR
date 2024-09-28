@@ -2,11 +2,12 @@
 
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 int image_read(const char* path, Image* image)
 {
     char type[3];
-    PGM_TYPE img_type;
+    FORMAT_TYPE img_type;
 
     FILE* input = fopen(path, "rb");
     if (input == NULL) return 0;
@@ -38,10 +39,25 @@ int image_read(const char* path, Image* image)
     return ret;
 }
 
+static void skip_comments(FILE* input)
+{
+    int c;
+    while ((c = fgetc(input)) != EOF) {
+        if (c == '#') {
+            while ((c = fgetc(input)) != EOF && c != '\n');
+        } else if (!isspace(c)) {
+            ungetc(c, input);
+            break;
+        }
+    }
+}
+
 // Lê uma imagem em binário
 int read_P5_PGM(FILE* input, Image* image)
 {
+    skip_comments(input);
     fscanf(input, "%u %u", &image->width, &image->height);
+    skip_comments(input);
     fscanf(input, "%hhu", &image->maxval);
     image->pixels = malloc(image->width * image->height);
     if (image->pixels == NULL) {
@@ -63,7 +79,9 @@ int read_P5_PGM(FILE* input, Image* image)
 // Lê uma imagem em ascii
 int read_P2_PGM(FILE* input, Image* image)
 {
+    skip_comments(input);
     fscanf(input, "%u %u", &image->width, &image->height);
+    skip_comments(input);
     fscanf(input, "%hhu", &image->maxval);
     image->pixels = malloc(image->width * image->height);
     if (image->pixels == NULL) return 0;
@@ -136,7 +154,7 @@ void write_P2_PGM(FILE* output, Image* image)
 // Escreve uma imagem em binário
 void write_P5_PGM(FILE* output, Image* image)
 {
-    fprintf(output, "P5\n%u %u\n%huu\n",
+    fprintf(output, "P5\n%u %u\n%hhu\n",
             image->width, image->height, image->maxval);
     fwrite(image->pixels, 1, image->width * image->height, output);
 }
