@@ -59,6 +59,7 @@ int read_P5_PGM(FILE* input, Image* image)
     fscanf(input, "%u %u", &image->width, &image->height);
     skip_comments(input);
     fscanf(input, "%hhu", &image->maxval);
+    skip_comments(input);
     image->pixels = malloc(image->width * image->height);
     if (image->pixels == NULL) {
         fprintf(stderr, "ERROR: Could not allocate memory for pixels\n");
@@ -83,6 +84,7 @@ int read_P2_PGM(FILE* input, Image* image)
     fscanf(input, "%u %u", &image->width, &image->height);
     skip_comments(input);
     fscanf(input, "%hhu", &image->maxval);
+    skip_comments(input);
     image->pixels = malloc(image->width * image->height);
     if (image->pixels == NULL) return 0;
 
