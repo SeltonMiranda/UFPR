@@ -9,8 +9,7 @@ int image_read(const char* path, Image* image)
     char type[3];
     FORMAT_TYPE img_type;
 
-    FILE* input = fopen(path, "rb");
-    if (input == NULL) return 0;
+    FILE* input = fopen(path, "rb"); if (input == NULL) return 0;
 
     // Lê o tipo de pgm
     fscanf(input, "%2s", type);
@@ -72,7 +71,7 @@ int read_P5_PGM(FILE* input, Image* image)
         return 0;
     }
     // Precisa cortar uma parte da imagem :d
-    image_chop_blank_rows(image);
+    //image_chop_blank_rows(image);
     return 1;
 }
 
@@ -162,4 +161,50 @@ void write_P5_PGM(FILE* output, Image* image)
 void image_destroy(Image* image)
 {
     free(image->pixels);
+}
+
+int image_rotate_by_x_degrees(Image* image, Image* rotated_img, double alpha)
+{
+    double sinx = SIND(alpha);
+    double cosx = COSD(alpha);
+
+    uint32_t new_width = (uint32_t)(fabs(image->width * cosx) + fabs(image->height * sinx));
+    uint32_t new_height = (uint32_t)(fabs(image->height * cosx) + fabs(image->width * sinx));
+
+    rotated_img->pixels = malloc(new_width * new_height);
+    if (rotated_img->pixels == NULL) {
+        fprintf(stderr, "ERROR Couldn't allocate memory for rotated image\n");
+        return 0;
+    }
+
+    rotated_img->width = new_width;
+    rotated_img->height = new_height;
+    rotated_img->maxval = image->maxval;
+    rotated_img->type = image->type;
+
+    // Centro das imagens original e rotacionada
+    int32_t x_center = image->width / 2;
+    int32_t y_center = image->height / 2;
+    int32_t new_x_center = rotated_img->width / 2;
+    int32_t new_y_center = rotated_img->height / 2;
+
+    for (uint32_t y = 0; y < rotated_img->height; y++) {
+        for (uint32_t x = 0; x < rotated_img->width; x++) {
+            // Nova origem
+            int32_t yt = y - new_y_center;
+            int32_t xt = x - new_x_center;
+
+            // Aplicando a matriz de rotação
+            int32_t xRotate = lround(xt * cosx + yt * sinx) + x_center;
+            int32_t yRotate = lround(-(xt * sinx) + yt * cosx) + y_center;
+
+            if (xRotate >= 0 && xRotate < (int32_t)image->width
+                    && yRotate >= 0 && yRotate < (int32_t)image->height) {
+                rotated_img->pixels[y*rotated_img->width + x] = image->pixels[yRotate*image->width + xRotate]; 
+            } else {
+                rotated_img->pixels[y*rotated_img->width + x] = 255; 
+            }
+        }
+    }
+    return 1;
 }

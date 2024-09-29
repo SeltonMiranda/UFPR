@@ -173,5 +173,4 @@ int main(int argc, char** argv)
         printf("Imagem mais similar: %s %.6f\n", dir.docs[min_idx], min);
     }
     return 0;
-
 }

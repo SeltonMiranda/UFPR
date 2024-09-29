@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+#define M_PI 3.14159265358979323846
+#define SIND(a) (sin(((a) * M_PI)/180.0))
+#define COSD(a) (cos(((a) * M_PI)/180.0))
 
 typedef enum {
     P2 = 0,
@@ -47,4 +52,6 @@ int image_write(const char* name, Image* image);
 // Desaloca memória da imagem
 void image_destroy(Image* image);
 
+// Rotaciona uma imagem por alpha graus
+int image_rotate_by_x_degrees(Image* image, Image* rotated_img, double alpha);
 #endif // __IMAGE__
