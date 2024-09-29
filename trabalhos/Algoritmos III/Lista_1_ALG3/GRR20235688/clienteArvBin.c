@@ -148,10 +148,12 @@ ArvBin novoPai( ArvBin p ){
     if ( p->item % 2 == 0 ) {
         ArvBin novo = criaNoArv(p->item * 2, p->pai);
         novo->esq = p;
+        p->pai = novo;
         return novo;
     } else if ( p->item % 2 == 1 ) {
         ArvBin novo = criaNoArv(p->item * 2 + 1, p->pai);
         novo->dir = p;
+        p->pai = novo;
         return novo;
     }
 

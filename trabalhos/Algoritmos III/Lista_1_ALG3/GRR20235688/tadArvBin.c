@@ -4,7 +4,6 @@ Implementação: TAD Árvore
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
 typedef int ItemArv;
 #include "itemInt.h"
 #include "arvBin.h"
@@ -107,28 +106,30 @@ ArvBin insereArvNivel( ItemArv v, ArvBin raiz ){
         return criaNoArv(v, NULL);
     }
 
-    Fila *f;
-    criaFila(f);
-    insereFila(raiz, f);
-    while ( !filaVazia(*f) ) {
+    Fila fila;
+    criaFila(&fila);
+    insereFila(raiz, &fila);
+    while ( !filaVazia(fila) ) {
         ItemFila temp;
-        removeFila(f, &temp);
+        removeFila(&fila, &temp);
 
         if ( !eq(temp->esq, NULL) ) {
-            insereFila(temp->esq, f);
+            insereFila(temp->esq, &fila);
         } else {
             temp->esq = criaNoArv(v, temp);
+            freeFila(fila);
             return raiz;
         }
 
         if (!eq(temp->dir, NULL)) {
-            insereFila(temp->dir, f);
+            insereFila(temp->dir, &fila);
         } else {
             temp->dir = criaNoArv(v, temp);
+            freeFila(fila);
             return raiz;
         }
     }
-
+    freeFila(fila);
     return raiz;
 }
 
