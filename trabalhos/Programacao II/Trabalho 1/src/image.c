@@ -168,6 +168,7 @@ int image_rotate_by_x_degrees(Image* image, Image* rotated_img, double alpha)
     double sinx = SIND(alpha);
     double cosx = COSD(alpha);
 
+    // Calculamos qual vai ser a nova altura e comprimento
     uint32_t new_width = (uint32_t)(fabs(image->width * cosx) + fabs(image->height * sinx));
     uint32_t new_height = (uint32_t)(fabs(image->height * cosx) + fabs(image->width * sinx));
 
@@ -182,7 +183,7 @@ int image_rotate_by_x_degrees(Image* image, Image* rotated_img, double alpha)
     rotated_img->maxval = image->maxval;
     rotated_img->type = image->type;
 
-    // Centro das imagens original e rotacionada
+    // Centro da imagem original e rotacionada
     int32_t x_center = image->width / 2;
     int32_t y_center = image->height / 2;
     int32_t new_x_center = rotated_img->width / 2;
@@ -198,11 +199,12 @@ int image_rotate_by_x_degrees(Image* image, Image* rotated_img, double alpha)
             int32_t xRotate = lround(xt * cosx + yt * sinx) + x_center;
             int32_t yRotate = lround(-(xt * sinx) + yt * cosx) + y_center;
 
-            if (xRotate >= 0 && xRotate < (int32_t)image->width
-                    && yRotate >= 0 && yRotate < (int32_t)image->height) {
+            if (xRotate >= 0 && xRotate < (int32_t)image->width &&
+                yRotate >= 0 && yRotate < (int32_t)image->height)
+            {
                 rotated_img->pixels[y*rotated_img->width + x] = image->pixels[yRotate*image->width + xRotate]; 
             } else {
-                rotated_img->pixels[y*rotated_img->width + x] = 255; 
+                rotated_img->pixels[y*rotated_img->width + x] = image->maxval; 
             }
         }
     }
