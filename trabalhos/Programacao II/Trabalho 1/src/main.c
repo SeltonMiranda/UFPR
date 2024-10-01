@@ -88,7 +88,17 @@ float find_min_value(float* dist, size_t len, size_t *min_idx)
     return min;
 }
 
-int main(int argc, char** argv)
+int main() 
+{
+    Image input;
+    Image output;
+    image_read("ballons-original.pgm", &input);
+    image_median_filter(&input, &output, 3);
+    image_write("ballons-median.pgm", &output);
+    return 0;
+}
+
+int main2(int argc, char** argv)
 {
     if (argc < 3) {
         fprintf(stderr, "ERROR: Not enough arguments\n");
