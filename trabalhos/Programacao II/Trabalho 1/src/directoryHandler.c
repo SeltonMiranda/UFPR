@@ -1,4 +1,4 @@
-#include "../includes/dirManipulation.h"
+#include "../includes/directoryHandler.h"
 
 #include <dirent.h>
 #include <stdlib.h>

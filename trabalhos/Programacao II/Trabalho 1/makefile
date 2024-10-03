@@ -2,12 +2,13 @@
 MAIN=LBP
 
 # FLAGS de compilação
-CFLAGS= -Wall -Wextra --std=c99 -lm
+CFLAGS= -Wall -Wextra --std=c17 -lm
 
 # Diretórios
 SRC_DIR = src
 INCLUDE_DIR = includes
 BUILD_DIR = build
+ENTREGA=GRR20235688
 
 # Arquivos fonte
 SRCS = $(wildcard $(SRC_DIR)/*.c)
@@ -28,4 +29,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 clean:
 	rm -rf $(MAIN) $(BUILD_DIR) *.o *.gch
 
-.phony: clean all
+entrega: clean
+	@mkdir $(ENTREGA)
+	cp -r makefile $(INCLUDE_DIR) $(SRC_DIR) $(ENTREGA)
+	zip -r $(ENTREGA).zip $(ENTREGA)
+	rm -rf $(ENTREGA)
+	@echo "Arquivo $(ENTREGA).zip criado"
+
+.phony: clean all entrega

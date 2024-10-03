@@ -1,5 +1,5 @@
 #include "../includes/localBinaryPatterns.h"
-#include "../includes/dirManipulation.h"
+#include "../includes/directoryHandler.h"
 
 #include <getopt.h>
 #include <string.h>
