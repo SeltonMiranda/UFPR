@@ -4,88 +4,41 @@
 #include <getopt.h>
 #include <string.h>
 #include <float.h>
+#include <dirent.h>
 
-/* Converte as imagens presentes no diretório em LBP,
- * criando os histogramas e salvando-os no próprio diretório
- * de entrada
- */
-void convert_images_2_LBP(Directory* dir)
+void create_histogram_from_image(const char* filepath)
 {
-    for (size_t i = 0; i < dir->d_count; i++) {
-        Image current_img;
-        Image current_LBP_img;
-        float histogram[MAX_PATTERNS];
-        char full_path[MAX_PATH_LEN];
-        snprintf(full_path, MAX_PATH_LEN, "%s/%s", dir->dir_name, dir->docs[i]);
+    Image current_img;
+    Image current_LBP_img;
+    float histogram[MAX_PATTERNS];
 
-        // Carregando imagem na mémoria e criando o histograma
-        image_read(full_path, &current_img);
-        LBP_apply(&current_LBP_img, &current_img);
-        LBP_histogram(histogram, &current_LBP_img);
-        LBP_normalize(histogram);
+    printf("aqui");
+    image_read(filepath, &current_img);
+    LBP_apply(&current_LBP_img, &current_img);
+    LBP_histogram(histogram, &current_LBP_img);
+    LBP_normalize(histogram);
 
-        // Escrevendo o histograma num arquivo
-        replace_extension(full_path, ".lbp");
-        LBP_write_histogram(histogram, full_path);
-        image_destroy(&current_img);
-        image_destroy(&current_LBP_img);
-    }
+    replace_extension(filepath, ".lbp");
+    LBP_write_histogram(histogram, filepath);
+    image_destroy(&current_img);
+    image_destroy(&current_LBP_img);
 }
 
-/* Calcula as distâncias de cada histograma com o histograma da imagem de entrada
- * retorna um vetor de distancias em hist[], retorna 1 em caso de sucesso e 0 em caso de falha
- */
-int get_distances(Directory* dir, float hist[], const char* lbp_path, float dist[])
+int is_lbp_in_dir(const char* dir_name, const char* lbp_name)
 {
-    for (size_t i = 0; i < dir->d_count; i++) {
-        float hist_2_compare[MAX_PATTERNS];
+    DIR* _dir;
+    struct dirent* file;
 
-        if (strcmp(lbp_path, dir->docs[i]) == 0) {
-            /* Se o nome são iguais, colocamos o maior valor possível de
-             * float assim evita que sempre a mesma imagem seja comparada
-             */
-            dist[i] = FLT_MAX; 
-        } else {
-            char full_LBP_path[MAX_PATH_LEN];
-            snprintf(full_LBP_path, MAX_PATH_LEN, "%s/%s", dir->dir_name, dir->docs[i]);
-
-            if (!LBP_read_histogram(hist_2_compare, full_LBP_path)) {
-                fprintf(stderr, "ERROR: Could not read file %s\n", dir->docs[i]);
-                return 0;
-            }
-            dist[i] = LBP_dist(hist, hist_2_compare);
+    _dir = opendir(dir_name);
+    file = readdir(_dir);
+    while (file != NULL) {
+        if (strstr(file->d_name, ".lbp")) {
+            if (strcmp(lbp_name, file->d_name) == 0)
+                return 1;
         }
-    }
-    return 1;
-}
-
-/*
- * Verifica se o arquivo está presente no diretório
- * retorna 1 caso esteja presente e 0 caso contrário
- */
-int is_in_dir(Directory* dir, const char* filename) {
-    for (size_t i = 0; i < dir->d_count; i++) {
-        if (strcmp(dir->docs[i], filename) == 0)
-            return 1;
+        file = readdir(_dir);
     }
     return 0;
-}
-
-/*
- * Encontra a menor distância presente no vetor de distâncias,
- * retorna o valor da menor distância e o indíce da mesma, no parâmetro
- */
-float find_min_value(float* dist, size_t len, size_t *min_idx)
-{
-    float min = dist[0];
-    *min_idx = 0;
-    for (size_t i = 1; i < len; i++) {
-        if (min > dist[i]) {
-            min = dist[i];
-            *min_idx = i;
-        }
-    }
-    return min;
 }
 
 int main(int argc, char** argv)
@@ -136,42 +89,63 @@ int main(int argc, char** argv)
     }
 
     if (i_flag && d_flag) {
-        if (!dir_get_files_by_ext(&dir, dir_path, ".lbp")) {
-            dir_get_files_by_ext(&dir, dir_path, ".pgm");
-            if (!is_in_dir(&dir, img_path)) {
-                fprintf(stderr, "ERROR: File %s does not exist\n", img_path);
-                fprintf(stderr, "img_path: %s\n", img_path);
-                return 1;
+        if (!dir_get_files_by_ext(&dir, dir_path, ".pgm"))
+            return 1;
+
+        size_t index;
+        float min_dist = FLT_MAX;
+        for (size_t i = 0; i < dir.d_count; i++) {
+
+            if (strcmp(dir.docs[i], img_path) == 0) 
+                continue;
+
+            char img_LBP_name[MAX_NAME_LEN];
+            char img_LBP_full_path[MAX_PATH_LEN];
+
+            strncpy(img_LBP_name, img_path, MAX_NAME_LEN);
+            replace_extension(img_LBP_name, ".lbp"); // input.pgm ---> input.lbp
+
+            // Verifica se o .lbp está presente no diretório, se não estiver cria-o
+            if (!is_lbp_in_dir(dir_path, img_LBP_name)) {
+                char img_full_path[MAX_PATH_LEN];
+                snprintf(img_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_path);
+                create_histogram_from_image(img_full_path);
+            } 
+
+            char img_dir_LBP_name[MAX_NAME_LEN];
+            char img_dir_LBP_full_path[MAX_PATH_LEN];
+
+            float hist_from_img_arg[MAX_PATTERNS];
+            float hist_from_dir[MAX_PATTERNS];
+            float dist;
+
+            // Carrega na memória o histograma da imagem passada como argumento
+            snprintf(img_LBP_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_LBP_name);
+            LBP_read_histogram(hist_from_img_arg, img_LBP_full_path);
+
+            // Pega a imagem dentro do diretório e renomeia-a como .lbp
+            strncpy(img_dir_LBP_name, dir.docs[i], MAX_NAME_LEN);
+            replace_extension(img_dir_LBP_name, ".lbp");
+
+            // Verifica se o .lbp da imagem está presente no diretório,
+            // caso contrário, cria-o
+            if (!is_lbp_in_dir(dir_path, img_dir_LBP_name)) {
+                char img_full_path[MAX_PATH_LEN];
+                snprintf(img_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, dir.docs[i]);
+                create_histogram_from_image(img_full_path);
+            } 
+
+            snprintf(img_dir_LBP_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_dir_LBP_name);
+            LBP_read_histogram(hist_from_dir, img_dir_LBP_full_path);
+
+            dist = LBP_dist(hist_from_img_arg, hist_from_dir);
+            if (dist < min_dist) {
+                min_dist = dist;
+                index = i;
             }
-            convert_images_2_LBP(&dir);
         }
-        dir_get_files_by_ext(&dir, dir_path, ".lbp");
-
-        char img_LBP_path[MAX_NAME_LEN];
-        char full_LBP_path[MAX_PATH_LEN];
-        float hist[MAX_PATTERNS];
-        float dist[dir.d_count];
-        size_t min_idx;
-        float min;
-
-        strncpy(img_LBP_path, img_path, MAX_NAME_LEN);
-        replace_extension(img_LBP_path, ".lbp");
-
-        // Note que o conteúdo do diretório sao os arquivos ".lbp"
-        if (!is_in_dir(&dir, img_LBP_path)) {
-            fprintf(stderr, "ERROR: File %s does not exist\n", img_LBP_path);
-            return 1;
-        }
-
-        snprintf(full_LBP_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_LBP_path);
-        LBP_read_histogram(hist, full_LBP_path);
-        if (!get_distances(&dir, hist, img_LBP_path, dist))
-            return 1;
-
-        min = find_min_value(dist, dir.d_count, &min_idx);
-        replace_extension(dir.docs[min_idx], ".pgm");
-        printf("Imagem mais similar: %s %.6f\n", dir.docs[min_idx], min);
+        printf("Imagem mais similar: %s %.6f\n", dir.docs[index], min_dist);
     }
-    return 0;
 
+    return 0;
 }

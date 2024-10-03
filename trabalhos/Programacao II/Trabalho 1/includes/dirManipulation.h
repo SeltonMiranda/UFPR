@@ -14,13 +14,14 @@
 
 typedef struct Directory {
     char docs[MAX_FILES][MAX_NAME_LENGTH]; // Nomes dos arquivos presentes no diretório
-    size_t d_count; // Quantidade de arquivos
     char dir_name[MAX_NAME_LENGTH]; // Nome do diretório 
+    size_t d_count; // Quantidade de arquivos
 } Directory;
 
-// Busca por todos os arquivos que terminam com a extensão passada por parâmetro
-int dir_get_files_by_ext(Directory* dir, const char* dir_path,
-                         const char* ext);
+// Busca por todos os arquivos dentro do diretório
+int dir_get_files(Directory* dir, const char* name);
+
+int dir_get_files_by_ext(Directory* dir, const char* dirName, const char* ext);
 
 // Troca a extensão de um arquivo
 void replace_extension(const char* filename, const char* new_ext);

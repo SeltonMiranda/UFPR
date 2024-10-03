@@ -6,6 +6,35 @@
 #include <errno.h>
 #include <stdio.h>
 
+int dir_get_files(Directory* dir, const char* name)
+{
+    DIR* _dir;
+    struct dirent* file;
+
+    _dir = opendir(name);
+    if (_dir == NULL) {
+        fprintf(stderr, "ERROR: Couldn't open directory %s: %s\n",
+                name, strerror(errno));
+        return 0;
+    }
+    strncpy(dir->dir_name, name, MAX_NAME_LENGTH);
+    dir->d_count = 0;
+    file = readdir(_dir);
+    while (file != NULL) {
+        if (dir->d_count >= MAX_FILES)
+            break;
+
+        strncpy(dir->docs[dir->d_count], file->d_name, MAX_NAME_LENGTH);
+        dir->d_count++;
+        file = readdir(_dir);
+    }
+    closedir(_dir);
+    if (dir->d_count == 0) {
+        fprintf(stderr, "Directory %s is empty\n", name);
+        return 0;
+    }
+    return 1;
+}
 
 int dir_get_files_by_ext(Directory* dir, const char* dirName, const char* ext)
 {
