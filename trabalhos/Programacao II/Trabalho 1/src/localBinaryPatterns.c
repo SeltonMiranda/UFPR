@@ -59,8 +59,12 @@ void LBP_histogram(float hist[MAX_PATTERNS], Image* LBP)
     // Itera sobre os pixels da imagem LBP e atualiza o histograma
     for (uint32_t y = 0; y < LBP->height; y++) {
         for (uint32_t x = 0; x < LBP->width; x++) {
-            uint8_t class = LBP->pixels[y * (LBP->width) + x];
-            hist[class]++;
+            if (y != 0 && y != LBP->height - 1) {
+                if (x != 0 && x != LBP->width - 1) {
+                    uint8_t class = LBP->pixels[y * (LBP->width) + x];
+                    hist[class]++;
+                }
+            }
         }
     }
 }

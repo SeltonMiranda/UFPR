@@ -12,7 +12,6 @@ void create_histogram_from_image(const char* filepath)
     Image current_LBP_img;
     float histogram[MAX_PATTERNS];
 
-    printf("aqui");
     image_read(filepath, &current_img);
     LBP_apply(&current_LBP_img, &current_img);
     LBP_histogram(histogram, &current_LBP_img);
@@ -38,6 +37,18 @@ int is_lbp_in_dir(const char* dir_name, const char* lbp_name)
         }
         file = readdir(_dir);
     }
+    return 0;
+}
+
+int image_exists(Directory* dir, const char* img_name)
+{
+    for (size_t i = 0; i < dir->d_count; i++) {
+        if (strcmp(img_name, dir->docs[i]) == 0)
+            return 1;
+    }
+
+    fprintf(stderr, "ERROR: Image %s does not exists in %s\n",
+            img_name, dir->dir_name);
     return 0;
 }
 
@@ -92,25 +103,32 @@ int main(int argc, char** argv)
         if (!dir_get_files_by_ext(&dir, dir_path, ".pgm"))
             return 1;
 
+        // Verifica se a imagem passada como argumento existe
+        if (!image_exists(&dir, img_path))
+            return 1;
+
         size_t index;
         float min_dist = FLT_MAX;
+
+        char img_LBP_name[MAX_NAME_LEN];
+        char img_LBP_full_path[MAX_PATH_LEN];
+
+        strncpy(img_LBP_name, img_path, MAX_NAME_LEN);
+        replace_extension(img_LBP_name, ".lbp"); // input.pgm ---> input.lbp
+
+        // Verifica se o .lbp da imagem passada como argumento
+        // está presente no diretório, se não estiver cria-o
+        if (!is_lbp_in_dir(dir_path, img_LBP_name)) {
+            char img_full_path[MAX_PATH_LEN];
+            snprintf(img_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_path);
+            create_histogram_from_image(img_full_path);
+        } 
+
+
         for (size_t i = 0; i < dir.d_count; i++) {
 
             if (strcmp(dir.docs[i], img_path) == 0) 
                 continue;
-
-            char img_LBP_name[MAX_NAME_LEN];
-            char img_LBP_full_path[MAX_PATH_LEN];
-
-            strncpy(img_LBP_name, img_path, MAX_NAME_LEN);
-            replace_extension(img_LBP_name, ".lbp"); // input.pgm ---> input.lbp
-
-            // Verifica se o .lbp está presente no diretório, se não estiver cria-o
-            if (!is_lbp_in_dir(dir_path, img_LBP_name)) {
-                char img_full_path[MAX_PATH_LEN];
-                snprintf(img_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_path);
-                create_histogram_from_image(img_full_path);
-            } 
 
             char img_dir_LBP_name[MAX_NAME_LEN];
             char img_dir_LBP_full_path[MAX_PATH_LEN];
@@ -120,7 +138,8 @@ int main(int argc, char** argv)
             float dist;
 
             // Carrega na memória o histograma da imagem passada como argumento
-            snprintf(img_LBP_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_LBP_name);
+            snprintf(img_LBP_full_path, MAX_PATH_LEN, "%s/%s",
+                    dir.dir_name, img_LBP_name);
             LBP_read_histogram(hist_from_img_arg, img_LBP_full_path);
 
             // Pega a imagem dentro do diretório e renomeia-a como .lbp
@@ -131,11 +150,13 @@ int main(int argc, char** argv)
             // caso contrário, cria-o
             if (!is_lbp_in_dir(dir_path, img_dir_LBP_name)) {
                 char img_full_path[MAX_PATH_LEN];
-                snprintf(img_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, dir.docs[i]);
+                snprintf(img_full_path, MAX_PATH_LEN, "%s/%s",
+                        dir.dir_name, dir.docs[i]);
                 create_histogram_from_image(img_full_path);
             } 
 
-            snprintf(img_dir_LBP_full_path, MAX_PATH_LEN, "%s/%s", dir.dir_name, img_dir_LBP_name);
+            snprintf(img_dir_LBP_full_path, MAX_PATH_LEN, "%s/%s",
+                    dir.dir_name, img_dir_LBP_name);
             LBP_read_histogram(hist_from_dir, img_dir_LBP_full_path);
 
             dist = LBP_dist(hist_from_img_arg, hist_from_dir);
