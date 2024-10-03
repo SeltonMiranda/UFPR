@@ -20,7 +20,7 @@ int image_read(const char* path, Image* image)
         img_type = P5;
     } else {
         fclose(input);
-        fprintf(stderr, "Sorry, not implemented yet :))))\n");
+        fprintf(stderr, "Sorry, not implemented yet :)\n");
         return 0;
     }
 
@@ -72,8 +72,6 @@ int read_P5_PGM(FILE* input, Image* image)
         free(image->pixels);
         return 0;
     }
-    // Precisa cortar uma parte da imagem :d
-    image_chop_blank_rows(image);
     return 1;
 }
 
@@ -98,17 +96,6 @@ int read_P2_PGM(FILE* input, Image* image)
         }
     }
     return 1;
-}
-
-void image_chop_blank_rows(Image *image)
-{
-    uint32_t blank_rows = 0;
-    for (uint32_t y = 0; y < image->height; y++) {
-        if (image->pixels[y * image->width] == 255) {
-            blank_rows++;
-        }
-    }
-    image->height -= (blank_rows + 1); // São 80 linhas em branco
 }
 
 int image_write(const char* name, Image* image)

@@ -34,12 +34,6 @@ void write_P2_PGM(FILE* output, Image* image);
 // Escreve num arquivo uma imagem PGM no formato P5
 void write_P5_PGM(FILE* output, Image* image);
 
-// Recorta as linhas em branco presentes na imagem
-// OBS: É necessária essa função, pois as imagens contidas
-// no diretório ../imagens/ possuem a escala que foram tiradas
-// e isso pode influenciar negativamente o algoritmo LBP
-void image_chop_blank_rows(Image* image);
-
 // Cria uma imagem no diretório atual
 // retorna 1 em caso de sucesso e 0 em caso de falha
 int image_write(const char* name, Image* image);
