@@ -18,8 +18,7 @@ void convert_images_2_LBP(Directory* dir)
         char full_path[MAX_PATH_LEN];
         snprintf(full_path, MAX_PATH_LEN, "%s/%s", dir->dir_name, dir->docs[i]);
 
-        // Carregando imagem na mémoria e criando o histograma
-        image_read(full_path, &current_img);
+        // Carregando imagem na mémoria e criando o histograma image_read(full_path, &current_img);
         LBP_apply(&current_LBP_img, &current_img);
         LBP_histogram(histogram, &current_LBP_img);
         LBP_normalize(histogram);
@@ -92,9 +91,9 @@ int main()
 {
     Image input;
     Image output;
-    image_read("ballons-original.pgm", &input);
-    image_median_filter(&input, &output, 3);
-    image_write("ballons-median.pgm", &output);
+    image_read("lena.pgm", &input);
+    image_rotate_by_x_degrees(&input, &output, 90.0);
+    image_write("lena-rotate.pgm", &output);
     return 0;
 }
 

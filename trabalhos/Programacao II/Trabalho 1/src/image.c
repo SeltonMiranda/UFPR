@@ -172,10 +172,10 @@ int image_rotate_by_x_degrees(Image* image, Image* rotated_img,
     double cosx = COSD(alpha);
 
     // Calculamos qual vai ser a nova altura e comprimento
-    uint32_t new_width = (uint32_t)(fabs(image->width * cosx) +
-                fabs(image->height * sinx));
-    uint32_t new_height = (uint32_t)(fabs(image->height * cosx) + 
-                fabs(image->width * sinx));
+    uint32_t new_width = (uint32_t)lround((fabs(image->width * cosx) +
+                fabs(image->height * sinx)));
+    uint32_t new_height = (uint32_t)lround((fabs(image->height * cosx) + 
+                fabs(image->width * sinx)));
 
     rotated_img->pixels = malloc(new_width * new_height);
     if (rotated_img->pixels == NULL) {
@@ -192,7 +192,7 @@ int image_rotate_by_x_degrees(Image* image, Image* rotated_img,
     // Centro da imagem original e rotacionada
     int32_t x_center = image->width / 2;
     int32_t y_center = image->height / 2;
-    int32_t new_x_center = rotated_img->width / 2;
+    int32_t new_x_center = rotated_img->width / 2 - 1;
     int32_t new_y_center = rotated_img->height / 2;
 
     for (uint32_t y = 0; y < rotated_img->height; y++) {
@@ -203,7 +203,7 @@ int image_rotate_by_x_degrees(Image* image, Image* rotated_img,
 
             // Aplicando a matriz de rotação
             int32_t xRotate = lround(xt * cosx + yt * sinx) + x_center;
-            int32_t yRotate = lround(-(xt * sinx) + yt * cosx) + y_center;
+            int32_t yRotate = lround(-xt * sinx + yt * cosx) + y_center;
 
             if (xRotate >= 0 && xRotate < (int32_t)image->width &&
                 yRotate >= 0 && yRotate < (int32_t)image->height)
@@ -211,8 +211,7 @@ int image_rotate_by_x_degrees(Image* image, Image* rotated_img,
                 rotated_img->pixels[y*rotated_img->width + x] = 
                         image->pixels[yRotate*image->width + xRotate]; 
             } else {
-                rotated_img->pixels[y*rotated_img->width + x] =
-                                        image->maxval; 
+                rotated_img->pixels[y*rotated_img->width + x] = 255; 
             }
         }
     }
