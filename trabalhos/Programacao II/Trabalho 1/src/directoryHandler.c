@@ -84,3 +84,33 @@ void replace_extension(const char* filename, const char* new_ext)
         strcpy(ext, new_ext);
     }
 }
+
+int image_exists(Directory* dir, const char* img_name)
+{
+    for (size_t i = 0; i < dir->d_count; i++) {
+        if (strcmp(img_name, dir->docs[i]) == 0)
+            return 1;
+    }
+
+    fprintf(stderr, "ERROR: Image %s does not exists in %s\n",
+            img_name, dir->dir_name);
+    return 0;
+}
+
+int is_lbp_in_dir(const char* dir_name, const char* lbp_name)
+{
+    DIR* _dir;
+    struct dirent* file;
+
+    _dir = opendir(dir_name);
+    file = readdir(_dir);
+    while (file != NULL) {
+        if (strstr(file->d_name, ".lbp")) {
+            if (strcmp(lbp_name, file->d_name) == 0)
+                return 1;
+        }
+        file = readdir(_dir);
+    }
+    closedir(_dir);
+    return 0;
+}

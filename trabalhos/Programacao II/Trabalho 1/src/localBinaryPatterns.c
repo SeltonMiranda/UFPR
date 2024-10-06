@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <math.h>
+#include <float.h>
 
 static void copy_image_attributes_2_LBP(Image* LBP, Image* image)
 {
@@ -160,4 +161,66 @@ float LBP_dist(float hist_1[MAX_PATTERNS], float hist_2[MAX_PATTERNS])
 
     float summation = kahan_sum(diffs);
     return sqrt(summation);
+}
+
+int process_image(const char* filepath)
+{
+    Image current_img;
+    Image current_LBP_img;
+    float histogram[MAX_PATTERNS];
+
+    if(!image_read(filepath, &current_img)) {
+        return 0;
+    }
+
+    LBP_apply(&current_LBP_img, &current_img);
+    LBP_histogram(histogram, &current_LBP_img);
+    LBP_normalize(histogram);
+
+    replace_extension(filepath, ".lbp");
+    LBP_write_histogram(histogram, filepath);
+    image_destroy(&current_img);
+    image_destroy(&current_LBP_img);
+    return 1;
+}
+
+float find_most_similar_image(Directory* dir, const char* img_path, float hist_from_img_arg[MAX_PATTERNS], size_t* index)
+{
+    float min_dist = FLT_MAX;
+    for (size_t i = 0; i < dir->d_count; i++) {
+        if (strcmp(dir->docs[i], img_path) == 0) 
+            continue;
+
+        char img_dir_LBP_name[MAX_NAME_LEN];
+        char img_dir_LBP_full_path[MAX_PATH_LEN];
+
+        float hist_from_dir[MAX_PATTERNS];
+        float dist;
+
+        // Pega a imagem dentro do diretório e renomeia-a como .lbp
+        strncpy(img_dir_LBP_name, dir->docs[i], MAX_NAME_LEN);
+        replace_extension(img_dir_LBP_name, ".lbp");
+
+        // Verifica se o .lbp da imagem está presente no diretório,
+        // caso contrário, cria-o
+        if (!is_lbp_in_dir(dir->dir_name, img_dir_LBP_name)) {
+            char img_full_path[MAX_PATH_LEN];
+            snprintf(img_full_path, MAX_PATH_LEN, "%s/%s",
+                    dir->dir_name, dir->docs[i]);
+            if (!process_image(img_full_path)) {
+                continue;
+            }
+        } 
+
+        snprintf(img_dir_LBP_full_path, MAX_PATH_LEN, "%s/%s",
+                dir->dir_name, img_dir_LBP_name);
+        LBP_read_histogram(hist_from_dir, img_dir_LBP_full_path);
+
+        dist = LBP_dist(hist_from_img_arg, hist_from_dir);
+        if (dist < min_dist) {
+            min_dist = dist;
+            *index = i;
+        }
+    }
+    return min_dist;
 }
