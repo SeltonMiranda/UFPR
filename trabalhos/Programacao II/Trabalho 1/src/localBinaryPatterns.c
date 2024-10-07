@@ -86,7 +86,7 @@ void LBP_normalize(float hist[MAX_PATTERNS])
     // Copiando o vetor original para o vetor que será ordenado
     memcpy(sortedHist, hist, MAX_PATTERNS * sizeof(float));
     qsort(sortedHist, MAX_PATTERNS, sizeof(float), compare_floats);
-    
+
     // Pegamos o valor minímo e máximo
     low_frequency = sortedHist[0];    
     high_frequency = sortedHist[MAX_PATTERNS - 1];
@@ -223,4 +223,28 @@ float find_most_similar_image(Directory* dir, const char* img_path, float hist_f
         }
     }
     return min_dist;
+}
+
+
+void load_img_lbp_from_arg(const char* img_path, const char* dir_name,
+                           float hist_from_img_arg[MAX_PATTERNS])
+{
+    char img_LBP_name[MAX_NAME_LEN];
+    char img_LBP_full_path[MAX_PATH_LEN];
+
+    strncpy(img_LBP_name, img_path, MAX_NAME_LEN);
+    replace_extension(img_LBP_name, ".lbp"); 
+
+    // Verifica se o .lbp da imagem passada como argumento
+    // está presente no diretório, se não estiver cria-o
+    if (!is_lbp_in_dir(dir_name, img_LBP_name)) {
+        char img_full_path[MAX_PATH_LEN];
+        snprintf(img_full_path, MAX_PATH_LEN, "%s/%s", dir_name, img_path);
+        process_image(img_full_path);
+    } 
+
+    // Carrega na memória o histograma da imagem passada como argumento
+    snprintf(img_LBP_full_path, MAX_PATH_LEN, "%s/%s",
+            dir_name, img_LBP_name);
+    LBP_read_histogram(hist_from_img_arg, img_LBP_full_path);
 }

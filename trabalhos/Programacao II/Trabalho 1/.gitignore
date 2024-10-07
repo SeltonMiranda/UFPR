@@ -1,5 +1,6 @@
 imagens/
 GRR20235688/
+build/
 *.zip
 *.pgm
 *.lbp

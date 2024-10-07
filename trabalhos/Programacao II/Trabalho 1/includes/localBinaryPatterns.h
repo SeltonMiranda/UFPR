@@ -65,4 +65,7 @@ int process_image(const char* filepath);
  * @return A distância da imagem mais similar encontrada.
  */
 float find_most_similar_image(Directory* dir, const char* img_path, float hist_from_img_arg[MAX_PATTERNS], size_t* index);
+
+void load_img_lbp_from_arg(const char* img_path, const char* dir_name,
+                           float hist_from_img_arg[MAX_PATTERNS]);
 #endif // __LBP__
