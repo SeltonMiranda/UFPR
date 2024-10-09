@@ -106,6 +106,7 @@ int LBP_write_histogram(float hist[MAX_PATTERNS], const char* name)
                 name, strerror(errno));
         return 0;
     } 
+
     fwrite(hist, sizeof(float), MAX_PATTERNS, output);
     if (ferror(output)) {
         fprintf(stderr, "ERROR couldn't write to file %s: %s\n",
@@ -120,18 +121,14 @@ int LBP_write_histogram(float hist[MAX_PATTERNS], const char* name)
 int LBP_read_histogram(float hist[MAX_PATTERNS], const char* name)
 {
     FILE* input = fopen(name, "rb");
-    if (input == NULL) {
-        fprintf(stderr, "ERROR Couldn't open file %s: %s\n",
-                name, strerror(errno));
-        return 0;
-    } 
+    if (input == NULL) return 0;
+
     fread(hist, sizeof(float), MAX_PATTERNS, input);
     if (ferror(input)) {
-        fprintf(stderr, "ERROR Couldn't read file %s: %s\n",
-                name, strerror(errno));
         fclose(input);
         return 0;
     }
+
     fclose(input);
     return 1;
 }
@@ -167,9 +164,14 @@ int process_image(const char* filepath)
 {
     Image current_img;
     Image current_LBP_img;
+    char lbp_file[MAX_NAME_LEN];
     float histogram[MAX_PATTERNS];
 
+    strncpy(lbp_file, filepath, MAX_NAME_LEN);
+    replace_extension(lbp_file, ".lbp");
+
     if(!image_read(filepath, &current_img)) {
+        fprintf(stderr, "Couldn't read image >%s<\n", filepath);
         return 0;
     }
 
@@ -177,23 +179,21 @@ int process_image(const char* filepath)
     LBP_histogram(histogram, &current_LBP_img);
     LBP_normalize(histogram);
 
-    replace_extension(filepath, ".lbp");
-    LBP_write_histogram(histogram, filepath);
+    LBP_write_histogram(histogram, lbp_file);
     image_destroy(&current_img);
     image_destroy(&current_LBP_img);
     return 1;
 }
 
-float find_most_similar_image(Directory* dir, const char* img_path, float hist_from_img_arg[MAX_PATTERNS], size_t* index)
+float find_similar_image(Directory* dir, const char* img_path, float hist_from_arg[MAX_PATTERNS], size_t *index)
 {
     float min_dist = FLT_MAX;
     for (size_t i = 0; i < dir->d_count; i++) {
-        if (strcmp(dir->docs[i], img_path) == 0) 
+        if (strstr(img_path, dir->docs[i]))
             continue;
 
         char img_dir_LBP_name[MAX_NAME_LEN];
-        char img_dir_LBP_full_path[MAX_PATH_LEN];
-
+        char img_dir_LBP_path[MAX_PATH_LEN];
         float hist_from_dir[MAX_PATTERNS];
         float dist;
 
@@ -210,41 +210,17 @@ float find_most_similar_image(Directory* dir, const char* img_path, float hist_f
             if (!process_image(img_full_path)) {
                 continue;
             }
-        } 
+        }
 
-        snprintf(img_dir_LBP_full_path, MAX_PATH_LEN, "%s/%s",
+        snprintf(img_dir_LBP_path, MAX_PATH_LEN, "%s/%s",
                 dir->dir_name, img_dir_LBP_name);
-        LBP_read_histogram(hist_from_dir, img_dir_LBP_full_path);
+        LBP_read_histogram(hist_from_dir, img_dir_LBP_path);
 
-        dist = LBP_dist(hist_from_img_arg, hist_from_dir);
+        dist = LBP_dist(hist_from_arg, hist_from_dir);
         if (dist < min_dist) {
             min_dist = dist;
             *index = i;
         }
     }
     return min_dist;
-}
-
-
-void load_img_lbp_from_arg(const char* img_path, const char* dir_name,
-                           float hist_from_img_arg[MAX_PATTERNS])
-{
-    char img_LBP_name[MAX_NAME_LEN];
-    char img_LBP_full_path[MAX_PATH_LEN];
-
-    strncpy(img_LBP_name, img_path, MAX_NAME_LEN);
-    replace_extension(img_LBP_name, ".lbp"); 
-
-    // Verifica se o .lbp da imagem passada como argumento
-    // está presente no diretório, se não estiver cria-o
-    if (!is_lbp_in_dir(dir_name, img_LBP_name)) {
-        char img_full_path[MAX_PATH_LEN];
-        snprintf(img_full_path, MAX_PATH_LEN, "%s/%s", dir_name, img_path);
-        process_image(img_full_path);
-    } 
-
-    // Carrega na memória o histograma da imagem passada como argumento
-    snprintf(img_LBP_full_path, MAX_PATH_LEN, "%s/%s",
-            dir_name, img_LBP_name);
-    LBP_read_histogram(hist_from_img_arg, img_LBP_full_path);
 }

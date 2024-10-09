@@ -1,6 +1,7 @@
 #include "../includes/localBinaryPatterns.h"
 
 #include <getopt.h>
+#include <string.h>
 
 void printHelp()
 {
@@ -57,16 +58,23 @@ int main(int argc, char** argv)
         if (!dir_get_files_by_ext(&dir, dir_path, ".pgm"))
             return EXIT_FAILURE;
 
-        // Verifica se a imagem passada como argumento existe
-        if (!image_exists(&dir, img_path))
-            return EXIT_FAILURE;
-
         size_t index;
         float min_dist;
-        float hist_from_img_arg[MAX_PATTERNS];
+        float hist_from_arg[MAX_PATTERNS];
+        char lbp_path[MAX_NAME_LEN];
 
-        load_img_lbp_from_arg(img_path, dir.dir_name, hist_from_img_arg);
-        min_dist = find_most_similar_image(&dir, img_path, hist_from_img_arg, &index);
+        strncpy(lbp_path, img_path, MAX_NAME_LEN);
+        replace_extension(lbp_path, ".lbp");
+        // Tenta ler o histograma primeiro
+        if (!LBP_read_histogram(hist_from_arg, lbp_path)) {
+            // Se falhou, cria o histograma
+            if (!process_image(img_path))
+                return EXIT_FAILURE;
+            LBP_read_histogram(hist_from_arg, lbp_path);
+        }
+
+        // Encontra a imagem mais similar
+        min_dist = find_similar_image(&dir, img_path, hist_from_arg, &index);
         printf("Imagem mais similar: %s %.6f\n", dir.docs[index], min_dist);
     } else {
         printHelp();

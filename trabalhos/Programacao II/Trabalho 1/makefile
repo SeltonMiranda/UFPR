@@ -16,7 +16,6 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 # Arquivos objetos
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
-
 all: $(MAIN)
 
 $(MAIN): $(OBJECTS)

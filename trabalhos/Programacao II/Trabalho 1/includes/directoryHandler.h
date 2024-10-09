@@ -19,14 +19,6 @@ typedef struct Directory {
 } Directory;
 
 /**
- * Busca por todos os arquivos em um diretório específico e armazena os nomes na estrutura Directory.
- * @param dir: Ponteiro para a estrutura Directory onde os arquivos serão armazenados.
- * @param name: Nome do diretório a ser lido.
- * @return Retorna 1 em caso de sucesso e 0 em caso de falha.
- */
-int dir_get_files(Directory* dir, const char* name);
-
-/**
  * Busca arquivos em um diretório específico com a extensão fornecida.
  * @param dir: Ponteiro para a estrutura Directory onde os arquivos serão armazenados.
  * @param dirName: Nome do diretório a ser lido.
@@ -41,14 +33,6 @@ int dir_get_files_by_ext(Directory* dir, const char* dirName, const char* ext);
  * @param new_ext: Nova extensão a ser aplicada ao arquivo.
  */
 void replace_extension(const char* filename, const char* new_ext);
-
-/**
- * Verifica se um arquivo de imagem específico existe dentro do diretório.
- * @param dir: Ponteiro para a estrutura Directory onde os arquivos foram armazenados.
- * @param img_name: Nome do arquivo de imagem a ser procurado.
- * @return Retorna 1 se o arquivo existir e 0 caso contrário.
- */
-int image_exists(Directory* dir, const char* img_name);
 
 /**
  * Verifica se um arquivo de características LBP específico está presente em um diretório.
