@@ -1,21 +1,15 @@
 #ifndef __DIR_MANIPULATION__
 #define __DIR_MANIPULATION__
 
-#define MAX_NAME_LENGTH 256 // Tamanho máximo para o nome de um arquivo
-#define MAX_FILES 100       // Quantidade máxima de arquivos na estrutura Directory
-
 #include <sys/types.h>
 
-// Define o tamanho máximo de um caminho no sistema GNU/Linux
-#define MAX_PATH_LEN 1024
-
-// Tamanho máximo permitido para o nome de um arquivo em sistemas GNU/Linux
-#define MAX_NAME_LEN 1024
+#define MAX_FILES 1024 // Quantidade máxima de arquivos na estrutura Directory
+#define MAX_LEN 1024
 
 typedef struct Directory {
-    char docs[MAX_FILES][MAX_NAME_LENGTH]; // Armazena os nomes dos arquivos presentes no diretório
-    char dir_name[MAX_NAME_LENGTH];        // Nome do diretório
-    size_t d_count;                        // Contador para a quantidade de arquivos no diretório
+    char docs[MAX_FILES][MAX_LEN]; // Armazena os nomes dos arquivos presentes no diretório
+    char dir_name[MAX_LEN];        // Nome do diretório
+    size_t d_count;                // Contador para a quantidade de arquivos no diretório
 } Directory;
 
 /**

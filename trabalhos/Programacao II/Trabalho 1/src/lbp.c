@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <string.h>
 
+// Auto-explicativo
 void printHelp()
 {
     fprintf(stderr, "Not enough arguments\n\
@@ -61,9 +62,9 @@ int main(int argc, char** argv)
         size_t index;
         float min_dist;
         float hist_from_arg[MAX_PATTERNS];
-        char lbp_path[MAX_NAME_LEN];
+        char lbp_path[MAX_LEN];
 
-        strncpy(lbp_path, img_path, MAX_NAME_LEN);
+        strncpy(lbp_path, img_path, MAX_LEN);
         replace_extension(lbp_path, ".lbp");
         // Tenta ler o histograma primeiro
         if (!LBP_read_histogram(hist_from_arg, lbp_path)) {

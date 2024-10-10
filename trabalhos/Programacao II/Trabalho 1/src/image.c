@@ -52,7 +52,6 @@ static void skip_comments(FILE* input)
     }
 }
 
-// Lê uma imagem em binário
 int read_P5_PGM(FILE* input, Image* image)
 {
     skip_comments(input);
@@ -75,7 +74,6 @@ int read_P5_PGM(FILE* input, Image* image)
     return 1;
 }
 
-// Lê uma imagem em ascii
 int read_P2_PGM(FILE* input, Image* image)
 {
     skip_comments(input);

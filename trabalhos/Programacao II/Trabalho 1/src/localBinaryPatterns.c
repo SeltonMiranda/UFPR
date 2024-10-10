@@ -24,12 +24,12 @@ int LBP_apply(Image* LBP, Image* image)
     copy_image_attributes_2_LBP(LBP, image);
 
     /**
-     * Aplica o LBP em sentido horário a partir do pixel (p0..7)
-     * superior esquerdo em relação ao pixel central (C)
-     * ------->
-     * p7 p6 p5 |
-     * p0 C  p4 |
-     * p1 p2 p3 v
+     * Aplica o LBP em sentido anti-horário a partir do pixel (p0)
+     * esquerdo em relação ao pixel central (C)
+     *   p7 p6 p5 
+     * | p0 C  p4 
+     * v p1 p2 p3 
+     * --------->
      **/
     for (uint32_t y = 1; y < image->height - 1; y++) { 
         for (uint32_t x = 1; x < image->width - 1; x++) {
@@ -164,10 +164,10 @@ int process_image(const char* filepath)
 {
     Image current_img;
     Image current_LBP_img;
-    char lbp_file[MAX_NAME_LEN];
+    char lbp_file[MAX_LEN];
     float histogram[MAX_PATTERNS];
 
-    strncpy(lbp_file, filepath, MAX_NAME_LEN);
+    strncpy(lbp_file, filepath, MAX_LEN);
     replace_extension(lbp_file, ".lbp");
 
     if(!image_read(filepath, &current_img)) {
@@ -175,10 +175,12 @@ int process_image(const char* filepath)
         return 0;
     }
 
+    // Aplica a máscara
     LBP_apply(&current_LBP_img, &current_img);
     LBP_histogram(histogram, &current_LBP_img);
     LBP_normalize(histogram);
 
+    // Escreve o histograma
     LBP_write_histogram(histogram, lbp_file);
     image_destroy(&current_img);
     image_destroy(&current_LBP_img);
@@ -192,27 +194,27 @@ float find_similar_image(Directory* dir, const char* img_path, float hist_from_a
         if (strstr(img_path, dir->docs[i]))
             continue;
 
-        char img_dir_LBP_name[MAX_NAME_LEN];
-        char img_dir_LBP_path[MAX_PATH_LEN];
+        char img_dir_LBP_name[MAX_LEN];
+        char img_dir_LBP_path[MAX_LEN];
         float hist_from_dir[MAX_PATTERNS];
         float dist;
 
         // Pega a imagem dentro do diretório e renomeia-a como .lbp
-        strncpy(img_dir_LBP_name, dir->docs[i], MAX_NAME_LEN);
+        strncpy(img_dir_LBP_name, dir->docs[i], MAX_LEN);
         replace_extension(img_dir_LBP_name, ".lbp");
 
         // Verifica se o .lbp da imagem está presente no diretório,
         // caso contrário, cria-o
         if (!is_lbp_in_dir(dir->dir_name, img_dir_LBP_name)) {
-            char img_full_path[MAX_PATH_LEN];
-            snprintf(img_full_path, MAX_PATH_LEN, "%s/%s",
+            char img_full_path[MAX_LEN];
+            snprintf(img_full_path, MAX_LEN * 2, "%s/%s",
                     dir->dir_name, dir->docs[i]);
             if (!process_image(img_full_path)) {
                 continue;
             }
         }
 
-        snprintf(img_dir_LBP_path, MAX_PATH_LEN, "%s/%s",
+        snprintf(img_dir_LBP_path, MAX_LEN * 2, "%s/%s",
                 dir->dir_name, img_dir_LBP_name);
         LBP_read_histogram(hist_from_dir, img_dir_LBP_path);
 

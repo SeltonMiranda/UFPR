@@ -18,7 +18,7 @@ int dir_get_files_by_ext(Directory* dir, const char* dirName, const char* ext)
         return 0;
     }
 
-    strncpy(dir->dir_name, dirName, MAX_NAME_LENGTH);
+    strncpy(dir->dir_name, dirName, MAX_LEN);
     dir->d_count = 0;
     file = readdir(_dir);
     while (file != NULL) {
@@ -27,7 +27,7 @@ int dir_get_files_by_ext(Directory* dir, const char* dirName, const char* ext)
             if (dir->d_count >= MAX_FILES) // Verifica se atingiu a qntd máxima de arquivos na struct
                 break;
 
-            strncpy(dir->docs[dir->d_count], file->d_name, MAX_NAME_LENGTH);
+            strncpy(dir->docs[dir->d_count], file->d_name, MAX_LEN);
             dir->d_count++;
         }
         file = readdir(_dir);
