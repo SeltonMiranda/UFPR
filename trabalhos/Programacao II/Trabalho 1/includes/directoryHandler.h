@@ -10,7 +10,7 @@
 #define MAX_PATH_LEN 1024
 
 // Tamanho máximo permitido para o nome de um arquivo em sistemas GNU/Linux
-#define MAX_NAME_LEN 256
+#define MAX_NAME_LEN 1024
 
 typedef struct Directory {
     char docs[MAX_FILES][MAX_NAME_LENGTH]; // Armazena os nomes dos arquivos presentes no diretório
