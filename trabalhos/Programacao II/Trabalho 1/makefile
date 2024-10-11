@@ -28,10 +28,7 @@ clean:
 	rm -rf $(MAIN) $(BUILD_DIR) *.o *.gch *.zip
 
 entrega: clean
-	@mkdir $(ENTREGA)
-	cp -r makefile README $(INCLUDE_DIR) $(SRC_DIR) $(ENTREGA)
-	zip -r $(ENTREGA).zip $(ENTREGA)
-	rm -rf $(ENTREGA)
+	zip -r $(ENTREGA).zip makefile README $(INCLUDE_DIR) $(SRC_DIR)
 	@echo "Arquivo $(ENTREGA).zip criado"
 
 .phony: clean all entrega
