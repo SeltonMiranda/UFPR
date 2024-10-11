@@ -3,7 +3,6 @@ MAIN=LBP
 
 # FLAGS de compilação
 CFLAGS= -Wall -Wextra --std=c17 -lm
-
 # Diretórios
 SRC_DIR = src
 INCLUDE_DIR = includes
@@ -26,11 +25,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	gcc -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS) -g
 
 clean:
-	rm -rf $(MAIN) $(BUILD_DIR) *.o *.gch
+	rm -rf $(MAIN) $(BUILD_DIR) *.o *.gch *.zip
 
 entrega: clean
 	@mkdir $(ENTREGA)
-	cp -r makefile $(INCLUDE_DIR) $(SRC_DIR) $(ENTREGA)
+	cp -r makefile README $(INCLUDE_DIR) $(SRC_DIR) $(ENTREGA)
 	zip -r $(ENTREGA).zip $(ENTREGA)
 	rm -rf $(ENTREGA)
 	@echo "Arquivo $(ENTREGA).zip criado"

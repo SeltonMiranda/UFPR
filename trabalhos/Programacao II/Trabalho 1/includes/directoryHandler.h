@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-#define MAX_FILES 1024 // Quantidade máxima de arquivos na estrutura Directory
+#define MAX_FILES 5000 // Quantidade máxima de arquivos na estrutura Directory
 #define MAX_LEN 1024
 
 typedef struct Directory {

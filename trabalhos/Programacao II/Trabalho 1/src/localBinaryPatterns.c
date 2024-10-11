@@ -18,7 +18,6 @@ int LBP_apply(Image* LBP, Image* image)
     // Inicializa os pixels da imagem LBP com zeros
     LBP->pixels = calloc(image->width * image->height, sizeof(uint8_t));
     if (LBP->pixels == NULL) {
-        fprintf(stderr, "ERROR: Couldn't allocate memory for LBP pixels\n");
         return 0;
     } 
     copy_image_attributes_2_LBP(LBP, image);

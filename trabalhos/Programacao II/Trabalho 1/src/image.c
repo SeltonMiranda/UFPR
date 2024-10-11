@@ -20,7 +20,6 @@ int image_read(const char* path, Image* image)
         img_type = P5;
     } else {
         fclose(input);
-        fprintf(stderr, "Sorry, not implemented yet :)\n");
         return 0;
     }
 
@@ -61,13 +60,12 @@ int read_P5_PGM(FILE* input, Image* image)
     skip_comments(input);
     image->pixels = malloc(image->width * image->height);
     if (image->pixels == NULL) {
-        fprintf(stderr, "ERROR: Could not allocate memory for pixels\n");
         return 0;
     }
+
     if (fread(image->pixels, sizeof(char),
         image->width * image->height, input) == 0)
     {
-        fprintf(stderr, "ERROR: Could not read file %s\n", strerror(errno));
         free(image->pixels);
         return 0;
     }
@@ -100,8 +98,6 @@ int image_write(const char* name, Image* image)
 {
     FILE* output = fopen(name, "wb");
     if (output == NULL) {
-        fprintf(stderr, "ERROR: Could not open file %s: %s\n",
-                name, strerror(errno));
         return 0; 
     }
 
@@ -113,7 +109,6 @@ int image_write(const char* name, Image* image)
             write_P5_PGM(output, image);
             break;
         default:
-            fprintf(stderr, "Sorry, not implemented yet :(\n");
             return 0;
     }
     fclose(output);
