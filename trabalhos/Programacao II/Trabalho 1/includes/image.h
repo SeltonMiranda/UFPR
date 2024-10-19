@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+#define M_PI 3.14159265358979323846
+#define SIND(a) (sin(((a) * M_PI)/180.0))
+#define COSD(a) (cos(((a) * M_PI)/180.0))
+#define DEFAULT_THRESHOLD 0.5
 
 typedef enum {
     P2 = 0, // Formato ASCII para imagens em tons de cinza
@@ -69,4 +75,15 @@ int image_write(const char* name, Image* image);
  * @param image: Ponteiro para a estrutura Image cuja memória será liberada.
  */
 void image_destroy(Image* image);
+
+// Rotaciona uma imagem por alpha graus
+int image_rotate_by_x_degrees(Image* image, Image* rotated_img,
+                                double alpha);
+
+// Aplica o filtro negativo na imagem, retorna em output
+int image_negative_filter(Image* input, Image* output);
+
+int image_treshold_filter(Image* input, Image* output);
+int image_mean_filter(Image* input, Image* output);
+int image_median_filter(Image* input, Image* output, int mask);
 #endif // __IMAGE__
