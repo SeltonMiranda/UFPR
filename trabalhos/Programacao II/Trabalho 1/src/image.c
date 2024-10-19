@@ -9,8 +9,7 @@ int image_read(const char* path, Image* image)
     char type[3];
     FORMAT_TYPE img_type;
 
-    FILE* input = fopen(path, "rb");
-    if (input == NULL) return 0;
+    FILE* input = fopen(path, "rb"); if (input == NULL) return 0;
 
     // Lê o tipo de pgm
     fscanf(input, "%2s", type);
@@ -69,6 +68,7 @@ int read_P5_PGM(FILE* input, Image* image)
         free(image->pixels);
         return 0;
     }
+
     return 1;
 }
 
@@ -144,4 +144,169 @@ void write_P5_PGM(FILE* output, Image* image)
 void image_destroy(Image* image)
 {
     free(image->pixels);
+}
+
+int image_rotate_by_x_degrees(Image* image, Image* rotated_img,
+                              double alpha)
+{
+    double sinx = SIND(alpha);
+    double cosx = COSD(alpha);
+
+    // Calculamos qual vai ser a nova altura e comprimento
+    uint32_t new_width = (uint32_t)lround((fabs(image->width * cosx) +
+                fabs(image->height * sinx)));
+    uint32_t new_height = (uint32_t)lround((fabs(image->height * cosx) + 
+                fabs(image->width * sinx)));
+
+    rotated_img->pixels = malloc(new_width * new_height);
+    if (rotated_img->pixels == NULL) {
+        fprintf(stderr,
+                "ERROR Couldn't allocate memory for rotated image\n");
+        return 0;
+    }
+
+    rotated_img->width = new_width;
+    rotated_img->height = new_height;
+    rotated_img->maxval = image->maxval;
+    rotated_img->type = image->type;
+
+    // Centro da imagem original e rotacionada
+    int32_t x_center = image->width / 2;
+    int32_t y_center = image->height / 2;
+    int32_t new_x_center = rotated_img->width / 2 - 1;
+    int32_t new_y_center = rotated_img->height / 2;
+
+    for (uint32_t y = 0; y < rotated_img->height; y++) {
+        for (uint32_t x = 0; x < rotated_img->width; x++) {
+            // Nova origem
+            int32_t yt = y - new_y_center;
+            int32_t xt = x - new_x_center;
+
+            // Aplicando a matriz de rotação
+            int32_t xRotate = lround(xt * cosx + yt * sinx) + x_center;
+            int32_t yRotate = lround(-xt * sinx + yt * cosx) + y_center;
+
+            if (xRotate >= 0 && xRotate < (int32_t)image->width &&
+                yRotate >= 0 && yRotate < (int32_t)image->height)
+            {
+                rotated_img->pixels[y*rotated_img->width + x] = 
+                        image->pixels[yRotate*image->width + xRotate]; 
+            } else {
+                rotated_img->pixels[y*rotated_img->width + x] = 255; 
+            }
+        }
+    }
+    return 1;
+}
+
+static void copy_attributes(Image* dest, Image* src) 
+{
+    dest->type = src->type;
+    dest->maxval = src->maxval;
+    dest->width = src->width;
+    dest->height = src->height;
+}
+
+int image_negative_filter(Image* input, Image* output)
+{
+    copy_attributes(output, input);
+    output->pixels = (uint8_t *)malloc(output->width * output->height);
+    if (output->pixels == NULL) {
+        fprintf(stderr, "ERROR: Couldn't allocate memory for image\n");
+        return 0;
+    }
+
+    for (uint32_t y = 0; y < output->height; y++) {
+        for (uint32_t x = 0; x < output->width; x++) {
+            output->pixels[y*output->width + x] = 
+                input->maxval - input->pixels[y*input->width + x];
+        }
+    }
+    return 1;
+}
+
+int image_treshold_filter(Image* input, Image* output) {
+    copy_attributes(output, input);
+    output->pixels = (uint8_t*)malloc(output->width*output->height);
+    if (output->pixels == NULL) {
+        fprintf(stderr, "ERROR: Couldn't allocate memory: treshold filter\n");
+        return 0;
+    }
+
+    for (uint32_t y = 0; y < output->height; y++) {
+        for (uint32_t x = 0; x < output->width; x++) {
+            if (input->pixels[y*input->width + x] > 
+                    input->maxval*DEFAULT_THRESHOLD)
+            {
+                output->pixels[y*output->width + x] = 255;
+            } else {
+                output->pixels[y*output->width + x] = 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int image_mean_filter(Image* input, Image* output)
+{
+    copy_attributes(output, input);
+    output->pixels = (uint8_t*)malloc(output->width*output->height);
+    if (output->pixels == NULL) {
+        fprintf(stderr, "ERROR: Couldn't allocate memory: mean filter \n");
+        return 0;
+    }
+
+    for (uint32_t y = 0; y < output->height; y++) {
+        for (uint32_t x = 0; x < output->width; x++) {
+            int32_t sum = 0;
+            for (int32_t y1 = -1; y1 <= 1; y1++) {
+                for (int32_t x1 = -1; x1 <= 1; x1++) {
+                    int32_t new_y = (int32_t)(y + y1); 
+                    int32_t new_x = (int32_t)(x + x1); 
+                    if (new_y >= 0 && new_y < (int32_t)input->height &&
+                        new_x >= 0 && new_x < (int32_t)input->width)
+                    {
+                        sum += (int32_t)input->pixels[new_y*input->width + new_x];
+                    }
+                }
+            }
+            output->pixels[y*output->width + x] = (uint8_t)(sum / 9);
+        }
+    } 
+    return 1;
+}
+
+static int cmp_uint(const void *a, const void *b)
+{
+    return (*(uint8_t*)a) - (*(uint8_t*)b);
+}
+
+int image_median_filter(Image* input, Image* output, int mask)
+{
+    copy_attributes(output, input);
+    output->pixels = calloc(output->width*output->height, sizeof(uint8_t));
+    if (output->pixels == NULL) {
+        fprintf(stderr, "ERROR: Couldn't allocate memory mean filter\n");
+        return 0;
+    }
+
+    for (uint32_t y = mask/2; y < output->height - mask/2; y++) {
+        for (uint32_t x = mask/2; x < output->height - mask/2; x++) {
+            uint8_t neighborhood[mask*mask];
+            size_t i = 0;
+            for (int32_t y1 = -mask/2; y1 <= mask/2; y1++) {
+                for (int32_t x1 = -mask/2; x1 <= mask/2; x1++) {
+                    int32_t new_y = (int32_t)y + y1;
+                    int32_t new_x = (int32_t)x + x1;
+                    neighborhood[i] =
+                        input->pixels[new_y*input->width + new_x];
+                    i++;
+                }
+            }
+
+            qsort(neighborhood, i, sizeof(uint8_t), cmp_uint);
+            output->pixels[y*output->width + x] = neighborhood[i/2];
+        }
+    } 
+    return 1;
 }

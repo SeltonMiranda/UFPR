@@ -3,6 +3,7 @@ MAIN=LBP
 
 # FLAGS de compilação
 CFLAGS= -Wall -Wextra --std=c17 -lm
+
 # Diretórios
 SRC_DIR = src
 INCLUDE_DIR = includes
