@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include "meuAlocador.h"
 
-int main (long int argc, char** argv) {
+int main (int argc, char** argv) {
+  (void)argc;
+  (void)argv;
+
   void *a, *b;
 
   iniciaAlocador();               // Impressão esperada
@@ -16,5 +19,6 @@ int main (long int argc, char** argv) {
   liberaMem(b);                   // ################----------------------------
                                   // ou
                                   // <vazio>
+  imprimeMapa();
   finalizaAlocador();
 }
