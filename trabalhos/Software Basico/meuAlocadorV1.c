@@ -38,15 +38,15 @@ void* alocaMem(int num_bytes) {
 
   iterador = topoInicialHeap;
   while (iterador < topoAtual) {
-    ocupado = *(unsigned long int*)((char*)iterador);
-    tamanho_do_bloco = *(unsigned long int*)((char*)iterador + 8);
+    ocupado = *(unsigned long *)((char *)iterador);
+    tamanho_do_bloco = *(unsigned long *)((char *)iterador + 8);
 
     if (ocupado == 0 && tamanho_do_bloco >= tamanho_necessario ) {
-      *(unsigned long int *)((char  *)iterador) = 1;   
+      *(unsigned long *)((char *)iterador) = 1;   
       return (void *)((char *)iterador + 16);
     }
 
-    iterador = (void*)((char*)iterador + tamanho_do_bloco);
+    iterador = (void *)((char *)iterador + tamanho_do_bloco);
   }
   
   // Calcula o Tamanho total do bloco
@@ -56,7 +56,7 @@ void* alocaMem(int num_bytes) {
 
   // Aumentando a heap
   void* inicio_do_bloco = sbrk(tamanho_total);
-  if (inicio_do_bloco == (void*)-1) {
+  if (inicio_do_bloco == (void *)-1) {
     return NULL;
   }
 
