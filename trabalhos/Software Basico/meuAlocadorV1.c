@@ -17,7 +17,7 @@
  * bytes 16...n -> Regiao do bloco onde estarão os dados
  */
 
-#define TAM_BLOCO 32
+#define TAM_BLOCO 1
 
 void *topoInicialHeap;
 void *topoAtual;
@@ -71,6 +71,10 @@ void* alocaMem(int num_bytes) {
 }
 
 int liberaMem(void* bloco) {
+  if (bloco == NULL) {
+    return 0;
+  }
+
   *(unsigned long *)((char*)bloco - 16) = 0;
   return 1;
 }
