@@ -20,5 +20,7 @@ int main (int argc, char** argv) {
                                   // ou
                                   // <vazio>
   imprimeMapa();
+  a = alocaMem(14);
+  imprimeMapa();
   finalizaAlocador();
 }

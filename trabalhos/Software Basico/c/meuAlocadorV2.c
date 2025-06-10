@@ -3,11 +3,11 @@
  * Alocador V1 mas agora com fusao dos blocos livres
  */
 
-#include "meuAlocador.h"
+#include "../meuAlocador.h"
 #include <unistd.h> /* Para "write()" */
 #include <string.h> /* Para "strlen()" */
 
-#define TAM_BLOCO 1
+#define METADATA_SIZE 16
 
 void *topoInicialHeap;
 void *topoAtual;
@@ -21,7 +21,7 @@ void finalizaAlocador() {
 }
 
 int liberaMem(void* bloco) {
-  *(unsigned long *)((char*)bloco - 16) = 0;
+  *(unsigned long *)((char*)bloco - METADATA_SIZE) = 0;
   return 1;
 }
 
@@ -38,17 +38,17 @@ void imprimeMapa() {
     unsigned long ocupado = *(unsigned long *)iterador;
     unsigned long tamanho = *(unsigned long *)((char *)iterador + 8);
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < METADATA_SIZE; i++) {
       char c = '#';
       write(1, &c, 1);
     }
 
     char c = ocupado ? '+' : '-';
-    for (unsigned long i = 16; i < tamanho; i++) {
+    for (unsigned long i = 0; i < tamanho; i++) {
       write(1, &c, 1);
     }
 
-    iterador = (char *)iterador + tamanho;
+    iterador = (void *)((char *)iterador + tamanho + METADATA_SIZE);
   }
 
   char nova_linha = '\n';
@@ -58,7 +58,6 @@ void imprimeMapa() {
 void* alocaMem(int num_bytes) {
   unsigned long ocupado;
   unsigned long tamanho_do_bloco;
-  unsigned long tamanho_necessario = num_bytes + 16;
 
   void *iterador = NULL;  
   iterador = topoInicialHeap;
@@ -67,16 +66,17 @@ void* alocaMem(int num_bytes) {
     tamanho_do_bloco = *(unsigned long int*)((char*)iterador + 8);
     
     // Se o bloco atual ja possui tamanho suficiente retorna-o
-    if (ocupado == 0 && tamanho_do_bloco >= tamanho_necessario) {
+    if (ocupado == 0 && tamanho_do_bloco >= num_bytes) {
       *(unsigned long *)((char *)iterador) = 1;
-      return (void *)(unsigned long *)((char *)iterador + 16);
+      return (void *)(unsigned long *)((char *)iterador + METADATA_SIZE);
     }
 
     // Se o bloco atual nao possui o tamanho suficiente verifica se é possível fundir
-    if (ocupado == 0 && tamanho_do_bloco < tamanho_necessario) {
-      void *proximo_bloco = (void*)((char *)iterador + tamanho_do_bloco);
+    if (ocupado == 0) {
+      unsigned long tamanho_total_fusao = tamanho_do_bloco; 
+      void *proximo_bloco = (void*)((char *)iterador + METADATA_SIZE + tamanho_do_bloco);
 
-      while (proximo_bloco < topoAtual) {
+      while (proximo_bloco < topoAtual && tamanho_total_fusao < num_bytes) {
         unsigned long prox_ocupado = *(unsigned long *)((char*)proximo_bloco);
         unsigned long prox_tamanho = *(unsigned long *)((char *)proximo_bloco + 8);
 
@@ -84,30 +84,23 @@ void* alocaMem(int num_bytes) {
           break;
         }
 
-        // Funde o bloco
-        tamanho_do_bloco += prox_tamanho;
-        *(unsigned long *)((char *)iterador + 8) = tamanho_do_bloco;
-        
-        proximo_bloco = (void *)((char *)proximo_bloco + prox_tamanho);
+        tamanho_total_fusao += METADATA_SIZE + prox_tamanho;
+        proximo_bloco = (void *)((char *)proximo_bloco + METADATA_SIZE + prox_tamanho);
       }
 
       // Se o tamanho dos blocos fundidos for maior que o necessario retorna o endereço desse bloco
-      if (tamanho_do_bloco >= tamanho_necessario) {
+      if (tamanho_total_fusao >= num_bytes) {
         *(unsigned long *)((char *)iterador) = 1;
-        return (void *)(unsigned long *)((char *)iterador + 16);
+        *(unsigned long *)((char *)iterador + 8) = tamanho_total_fusao;
+        return (void *)(unsigned long *)((char *)iterador + METADATA_SIZE);
       }
     }
 
-    iterador = (void *)((char*)iterador + tamanho_do_bloco);
+    iterador = (void *)((char*)iterador + METADATA_SIZE + tamanho_do_bloco);
   }
   
-  // Calcula o Tamanho total do bloco
-  unsigned long paginas = (tamanho_necessario + TAM_BLOCO - 1) / TAM_BLOCO;
-  unsigned long tamanho_total = paginas * TAM_BLOCO;
-
-
   // Aumentando a heap
-  void* inicio_do_bloco = sbrk(tamanho_total);
+  void* inicio_do_bloco = sbrk(num_bytes + METADATA_SIZE);
   if (inicio_do_bloco == (void*)-1) {
     return NULL;
   }
@@ -117,7 +110,7 @@ void* alocaMem(int num_bytes) {
 
   // Configurando os metadados
   *(unsigned long *)((char*)inicio_do_bloco) = 1;
-  *(unsigned long *)((char*)inicio_do_bloco + 8) = tamanho_total;
+  *(unsigned long *)((char*)inicio_do_bloco + 8) = num_bytes;
 
-  return (void *)((char *)inicio_do_bloco + 16);
+  return (void *)((char *)inicio_do_bloco + METADATA_SIZE);
 }

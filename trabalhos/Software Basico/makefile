@@ -19,21 +19,21 @@ EXEC_V3 = programaV3
 
 # Alvo padrão
 # all: $(EXEC_V1) $(EXEC_V2) # $(EXEC_V3)
-all: $(EXEC_V1) 
+all: $(EXEC_V2) 
 
 # Compila V1
-$(EXEC_V1): $(OBJ_V1) $(MAIN) 
-	$(CC) $(CFLAGS) -o $@ $^ 
- 
-$(OBJ_V1): $(SRC_V1) $(HEADER)
-	$(CC) $(CFLAGS) -c -o $@ $(SRC_V1)
-
- # Compila V2
-#$(EXEC_V2): $(OBJ_V2) $(MAIN)
+#$(EXEC_V1): $(OBJ_V1) $(MAIN) 
 #	$(CC) $(CFLAGS) -o $@ $^ 
 # 
-#$(OBJ_V2): $(SRC_V2) $(HEADER)
-#	$(CC) $(CFLAGS) -c -o $@ $(SRC_V2)
+#$(OBJ_V1): $(SRC_V1) $(HEADER)
+#	$(CC) $(CFLAGS) -c -o $@ $(SRC_V1)
+
+ # Compila V2
+$(EXEC_V2): $(OBJ_V2) $(MAIN)
+	$(CC) $(CFLAGS) -o $@ $^ 
+ 
+$(OBJ_V2): $(SRC_V2) $(HEADER)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_V2)
 
  # Compila V3
 #$(EXEC_V3): $(OBJ_V3) $(MAIN)
