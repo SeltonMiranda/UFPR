@@ -1,0 +1,41 @@
+# .clang-format
+BasedOnStyle: LLVM
+
+# Indentação
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+
+PointerAlignment: Left
+
+# Quebra de linhas e colchetes
+BreakBeforeBraces: Allman        
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly 
+
+# Alinhamentos
+AlignConsecutiveAssignments: true    # alinha sequências de 'a = ...; b = ...;'
+AlignConsecutiveDeclarations: true   # alinha declarações consecutivas (tipo + nome + =)
+AlignTrailingComments: true          # alinha comentários finais (// comment)
+AlignAfterOpenBracket: Align         # alinhamento após '(' ou '['
+
+# Comentários
+ReflowComments: true                 # reorganiza comentários longos em múltiplas linhas
+ColumnLimit: 0                       # sem limite de coluna (0 = off)
+
+# Espaços e estilo
+SpaceBeforeParens: ControlStatements # espaço antes de parênteses em if/for/while etc.
+SpacesInParentheses: false
+SpacesInCStyleCastParentheses: false
+
+# Controle de estilo para listas/arrays/initializers
+AllowShortBlocksOnASingleLine: false
+
+# Brace wrapping options mais específicas (mantém consistência)
+BraceWrapping:
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  BeforeElse: false
+  IndentBraces: false

@@ -1,0 +1,13 @@
+- Para compilar faça:
+make
+
+- Para utilizar faça:
+./fdtool <comando> <opções>
+  - Por exemplo,
+    ./fdtool closure --fds exemplos/e1.fds --X A
+    ./fdtool mincover --fds exemplos/e2.fds
+    ./fdtool normalform --fds exemplos/e3.fds
+    ./fdtool keys --fds exemplos/e4.fds
+
+- Para limpar arquivos faça:
+make purge

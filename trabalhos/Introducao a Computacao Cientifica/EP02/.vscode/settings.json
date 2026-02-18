@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    "edo.h": "c",
+    "utils.h": "c",
+    "stdio.h": "c"
+  },
+  "C_Cpp.errorSquiggles": "enabled"
+}

@@ -1,0 +1,22 @@
+package Semana_004.ex002;
+
+public class Ingresso {
+    private double valor;
+
+    public Ingresso(double valor) {
+        this.valor = valor;
+    }
+
+    public double getValor() {
+        return valor;
+    }
+
+    public void setValor(double valor) {
+        this.valor = valor;
+    }
+
+    public void imprimirValor() {
+        System.out.println("Valor: " + this.getValor());
+    }
+    
+}

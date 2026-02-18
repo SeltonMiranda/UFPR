@@ -1,0 +1,4 @@
+# Exemplo que estava na primeira prova
+
+U = {A, B, C, D, E, F}
+F = {A->B, C->D, BD->E, EF->A}

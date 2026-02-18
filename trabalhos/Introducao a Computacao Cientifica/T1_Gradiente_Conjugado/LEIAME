@@ -1,0 +1,30 @@
+Autor: Selton Miranda Rolim
+GRR:   20235688
+
+-- ErrorType.h
+  Define um conjunto de tipos de erro (enum) que podem ser retornados por funções do sistema.
+Inclui uma função utilitária para converter o código de erro em uma mensagem de log descritiva.
+
+-- Utils.h
+  Contém rotinas de suporte que não pertencem à lógica específica dos sistemas lineares ou matrizes.
+Oferece ferramentas para medição de tempo de execução para análise de desempenho.
+
+-- KDMatrix.h
+  Define a estrutura KDMatrix (Matriz K-Diagonal). Esta estrutura armazena a matriz A de forma otimizada,
+guardando apenas os elementos não-nulos nas k diagonais. Um inteiro k indica a banda de diagonalização.
+Implementa operações de álgebra linear, como: Produto Escalar e Multiplicação entre Matriz e Vetor,
+necessárias para o Método do Gradiente Conjugado.
+
+-- LinearSystem.h
+  Define a estrutura LinearSystem, que encapsula todos os componentes de um sistema Ax=b, sendo:
+    - A matriz A (do tipo KDMatrix).
+    - o vetor solução x.
+    - O vetor de termos independentes b.
+Além disso, define as operações e manipulações necessárias para gerenciar e interagir com o 
+sistema linear como um todo.
+
+-- ConjugateGradient.h
+  Implementa o Método do Gradiente Conjugado Pré-Condicionado (PCG), um método iterativo para
+resolver sistemas lineares simétricos e positivos definidos. Define, também, uma estrutura auxiliar
+PreConditioner, que é usada para configurar e deteminar qual pré-condicionador será aplicado durante
+a execução do PCG.

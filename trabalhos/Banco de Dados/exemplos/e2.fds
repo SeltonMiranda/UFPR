@@ -1,0 +1,11 @@
+# exemplo que viola BCNF e não viola 3FN
+
+U = {A, B, C, D, E, F, G, H}
+F = {
+  ABH->C,    
+  AC->H,    
+  AG->A,    
+  BG->A,    
+  AD->G   
+}
+

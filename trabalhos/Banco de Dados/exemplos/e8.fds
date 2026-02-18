@@ -1,0 +1,4 @@
+# Exemplo que não viola nem 3FN nem BCNF
+
+U = {P, Q, R, S, T}
+F = {P->Q, PQ->R, PR->S, PS->T}

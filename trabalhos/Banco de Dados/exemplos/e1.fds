@@ -1,0 +1,4 @@
+# exemplo que viola tanto BCNF e 3FN
+
+U = {A, B, C, D, E}
+F = { A->BC, C->D, BD->E }
