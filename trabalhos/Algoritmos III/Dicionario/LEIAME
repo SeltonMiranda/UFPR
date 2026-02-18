@@ -1,0 +1,27 @@
+/**************************************
+ * Esse arquivo descreve a estrutura de dados utilizada no trabalho
+ * Autores: Selton Miranda Rolim (GRR20235688) e Gabriel Carloto Nowak (GRR20235686).
+***************************************/
+
+Trabalho Algoritmos III
+
+Nesse trabalho utilizamos uma trie com a seguinte estrutura
+
+typedef struct Nodo {
+    ApNodo prox[RANGE];
+    char *palavra;
+} Nodo;
+
+O qual o campo "prox[]" indica o próximo dígito da palavra (no formato T9), e o
+campo "palavra" guarda a palavra que foi codificada (mais detalhes abaixo).
+
+Muitas estruturas na internet usam um campo "isEndOFWord", um valor booleano,
+que indica o término de uma palavra na trie, dessa forma a árvore não guarda
+a palavra inteira. Nesse trabalho, porém, como a árvore guarda palavras no 
+formato T9 nós precisávamos da palavra novamente a fim de imprimí-la no terminal
+quando fosse buscada, pois cada dígito mapeia para 3 ou 4 caracteres. Tornando o 
+valor booleano inútil, uma vez que se pode utilizar o caractere nulo '\0' como 
+demarcador de fim aliado à informação de "char *palavra", podendo ser NULL ou não 
+(age como um valor booleano), para testar se havia uma palavra no nodo.
+
+Ademais, não houve dificuldades no restante da implementação.
